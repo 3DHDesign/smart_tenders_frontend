@@ -1,4 +1,4 @@
-import React from "react";
+ 
 import CategorySlider from "./CategorySlider";
 import { FaSearch } from "react-icons/fa"; // Import FaSearch for the search button icon
 

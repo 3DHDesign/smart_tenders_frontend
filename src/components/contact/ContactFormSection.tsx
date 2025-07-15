@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../shared/Button'; // Your shared Button component
-import { FiMail, FiPhone, FiMapPin, FiPaperclip, FiZap } from 'react-icons/fi'; // Icons for contact info and file upload
+import { FiPaperclip, FiZap } from 'react-icons/fi'; // Icons for contact info and file upload
 
 const ContactFormSection: React.FC = () => {
   const [formData, setFormData] = useState({

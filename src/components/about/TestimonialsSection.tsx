@@ -1,43 +1,52 @@
-import React from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
+import React from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 // Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/effect-coverflow'; // Keep coverflow effect styles
-import 'swiper/css/pagination';
-import 'swiper/css/navigation'; // Keep navigation styles
+import "swiper/css"; // Keep coverflow effect styles
+import "swiper/css/pagination";
+import "swiper/css/navigation"; // Keep navigation styles
 
 // Import Swiper modules
-import { EffectCoverflow, Pagination, Navigation, Autoplay } from 'swiper/modules';
+import {
+  EffectCoverflow,
+  Pagination,
+  Navigation,
+  Autoplay,
+} from "swiper/modules";
 
 // Data for testimonials (same as before)
 const testimonials = [
   {
-    quote: "SmartTenders has revolutionized how we discover and bid on projects. The platform is incredibly intuitive, and the detailed tender insights have significantly improved our success rate. Highly recommended for any business in Sri Lanka!",
+    quote:
+      "SmartTenders has revolutionized how we discover and bid on projects. The platform is incredibly intuitive, and the detailed tender insights have significantly improved our success rate. Highly recommended for any business in Sri Lanka!",
     author: "Kamal Perera",
     title: "CEO, Perera & Sons Construction",
     avatar: "https://placehold.co/80x80/00A3DF/FFFFFF?text=KP", // Placeholder avatar
   },
   {
-    quote: "Navigating government tenders used to be a nightmare. SmartTenders simplified the entire process, from finding relevant opportunities to managing deadlines. It's an essential tool for our procurement team.",
+    quote:
+      "Navigating government tenders used to be a nightmare. SmartTenders simplified the entire process, from finding relevant opportunities to managing deadlines. It's an essential tool for our procurement team.",
     author: "Nisha Fernando",
     title: "Procurement Manager, Lanka Tech Solutions",
     avatar: "https://placehold.co/80x80/273E47/FFFFFF?text=NF", // Placeholder avatar
   },
   {
-    quote: "The personalized email alerts are a game-changer. We no longer miss out on critical tenders. SmartTenders has truly empowered our small business to compete effectively.",
+    quote:
+      "The personalized email alerts are a game-changer. We no longer miss out on critical tenders. SmartTenders has truly empowered our small business to compete effectively.",
     author: "Ravi Kumar",
     title: "Founder, Rapid Logistics",
     avatar: "https://placehold.co/80x80/00A3DF/FFFFFF?text=RK", // Placeholder avatar
   },
   {
-    quote: "An excellent platform for both buyers and suppliers. The interface is clean, the information is comprehensive, and the support team is very responsive. A must-have for the Sri Lankan tender market.",
+    quote:
+      "An excellent platform for both buyers and suppliers. The interface is clean, the information is comprehensive, and the support team is very responsive. A must-have for the Sri Lankan tender market.",
     author: "Dilani Rajapakse",
     title: "Business Development Head, Global Supplies Ltd.",
     avatar: "https://placehold.co/80x80/273E47/FFFFFF?text=DR", // Placeholder avatar
   },
   {
-    quote: "The tender analysis tools are incredibly insightful. They help us make informed decisions and focus our resources on the most promising opportunities. SmartTenders is a vital strategic partner.",
+    quote:
+      "The tender analysis tools are incredibly insightful. They help us make informed decisions and focus our resources on the most promising opportunities. SmartTenders is a vital strategic partner.",
     author: "Saman Wijesinghe",
     title: "Director, Green Energy Solutions",
     avatar: "https://placehold.co/80x80/00A3DF/FFFFFF?text=SW", // Placeholder avatar
@@ -53,13 +62,14 @@ const TestimonialsSection: React.FC = () => {
           What Our Clients Say
         </h2>
         <p className="text-gray-600 font-body max-w-2xl mx-auto mb-10">
-          Hear directly from businesses and individuals who have transformed their tender journey with SmartTenders.
+          Hear directly from businesses and individuals who have transformed
+          their tender journey with SmartTenders.
         </p>
 
         {/* Testimonials Slider with Coverflow Effect */}
         {/* Removed max-w-7xl from Swiper, let it stretch within its parent context */}
         <Swiper
-          effect={'coverflow'}
+          effect={"coverflow"}
           grabCursor={true}
           centeredSlides={true} // Crucial for the "peek" effect and centering the active slide
           loop={true}
@@ -70,30 +80,32 @@ const TestimonialsSection: React.FC = () => {
           pagination={{ clickable: true }}
           navigation={true} // Enable default navigation arrows
           modules={[EffectCoverflow, Pagination, Navigation, Autoplay]} // Ensure all modules are included
-
           // KEY CHANGES FOR SLIDE WIDTH AND SPACING:
           // Default for smallest screens
           slidesPerView={1.2} // Show 1 main slide + peek of next
           spaceBetween={10} // Small space between slides
-
           breakpoints={{
             // Adjusted breakpoints for wider cards and precise counts in coverflow
-            640: { // sm
+            640: {
+              // sm
               slidesPerView: 1.8, // Show 1.8 slides
               spaceBetween: 15,
             },
-            1024: { // lg
+            1024: {
+              // lg
               slidesPerView: 2.5, // Show 2.5 slides
               spaceBetween: 20,
             },
-            1280: { // xl - Aim for 3.5 to 3.8 slides visible for the "4 + peek" effect
+            1280: {
+              // xl - Aim for 3.5 to 3.8 slides visible for the "4 + peek" effect
               slidesPerView: 3.8, // Shows 3 full cards + a significant peek of the 4th
               spaceBetween: 25, // Increased space for better visual separation
             },
-            1536: { // 2xl (if your wide-container allows for more width)
+            1536: {
+              // 2xl (if your wide-container allows for more width)
               slidesPerView: 4.2, // Aim for 4 full cards + peek of 5th on very large screens
               spaceBetween: 25,
-            }
+            },
           }}
           className="myTestimonialsSwiper !pb-10" // !pb-10 for pagination dots
         >
@@ -109,10 +121,18 @@ const TestimonialsSection: React.FC = () => {
 
                 {/* Author Info - Aligned to bottom-left */}
                 <div className="flex items-center mt-auto pt-4 border-t border-gray-100">
-                  <img src={testimonial.avatar} alt={testimonial.author} className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 mr-3" />
+                  <img
+                    src={testimonial.avatar}
+                    alt={testimonial.author}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 mr-3"
+                  />
                   <div>
-                    <p className="font-semibold text-[var(--color-dark)] font-heading">{testimonial.author}</p>
-                    <p className="text-sm text-gray-500 font-body">{testimonial.title}</p>
+                    <p className="font-semibold text-[var(--color-dark)] font-heading">
+                      {testimonial.author}
+                    </p>
+                    <p className="text-sm text-gray-500 font-body">
+                      {testimonial.title}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -121,7 +141,7 @@ const TestimonialsSection: React.FC = () => {
         </Swiper>
 
         {/* Custom styles for Swiper pagination and navigation arrows */}
-        <style jsx>{`
+        <style>{`
           /* Swiper navigation arrows (default elements) */
           .swiper-button-next,
           .swiper-button-prev {

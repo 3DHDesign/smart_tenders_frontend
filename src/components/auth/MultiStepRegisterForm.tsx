@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import AccountStep from './steps/AccountStep';
-import ContactDetailsStep from './steps/ContactDetailsStep'; // Step 2
-import TenderPreferencesStep from './steps/TenderPreferencesStep';
-import PackageSelectionStep from './steps/PackageSelectionStep';
-import Button from '../shared/Button';
+import React, { useState } from "react";
+import AccountStep from "./steps/AccountStep";
+import ContactDetailsStep from "./steps/ContactDetailsStep"; // Step 2
+import TenderPreferencesStep from "./steps/TenderPreferencesStep";
+import PackageSelectionStep from "./steps/PackageSelectionStep";
+import Button from "../shared/Button";
 
 // Define a type for the form data that will be collected across all steps
-interface RegistrationFormData {
+export interface RegistrationFormData {
   email: string;
   password: string;
   confirmPassword: string;
@@ -30,38 +30,45 @@ interface RegistrationFormData {
 const MultiStepRegisterForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RegistrationFormData>({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    fullName: '',
-    phone: '',
-    address1: '',
-    address2: '',
-    city: '',
-    province: '',
-    country: '',
-    postalCode: '',
-    dynamicEmails: [ // Initialize with 2 free email slots
-      { id: 1, address: '', editable: true },
-      { id: 2, address: '', editable: true },
+    email: "",
+    password: "",
+    confirmPassword: "",
+    fullName: "",
+    phone: "",
+    address1: "",
+    address2: "",
+    city: "",
+    province: "",
+    country: "",
+    postalCode: "",
+    dynamicEmails: [
+      // Initialize with 2 free email slots
+      { id: 1, address: "", editable: true },
+      { id: 2, address: "", editable: true },
     ],
     selectedCategories: [],
-    selectedPackage: '',
-    paymentMethod: '',
+    selectedPackage: "",
+    paymentMethod: "",
   });
 
   const totalSteps = 4;
 
   const updateFormData = (newData: Partial<RegistrationFormData>) => {
-    setFormData(prev => ({ ...prev, ...newData }));
+    setFormData((prev) => ({ ...prev, ...newData }));
   };
 
   const handleNext = () => {
     // Basic validation for the current step
     switch (currentStep) {
       case 1: // AccountStep validation
-        if (!formData.email || !formData.password || formData.password !== formData.confirmPassword) {
-          alert("Step 1: Please fill in all fields and ensure passwords match.");
+        if (
+          !formData.email ||
+          !formData.password ||
+          formData.password !== formData.confirmPassword
+        ) {
+          alert(
+            "Step 1: Please fill in all fields and ensure passwords match."
+          );
           return;
         }
         break;
@@ -70,17 +77,31 @@ const MultiStepRegisterForm: React.FC = () => {
         // Check if fullName, phone, address1 are filled
         // Check if ALL *initial* dynamic emails are filled (the two free ones)
         // If additional emails were added, they should also be validated.
-        const allEmailsFilled = formData.dynamicEmails.every(email => email.address.trim() !== '');
+        const allEmailsFilled = formData.dynamicEmails.every(
+          (email) => email.address.trim() !== ""
+        );
 
-        if (!formData.fullName.trim() || !formData.phone.trim() || !formData.address1.trim() || !allEmailsFilled) {
-          alert("Step 2: Please fill in required contact details and all email addresses.");
+        if (
+          !formData.fullName.trim() ||
+          !formData.phone.trim() ||
+          !formData.address1.trim() ||
+          !allEmailsFilled
+        ) {
+          alert(
+            "Step 2: Please fill in required contact details and all email addresses."
+          );
           return;
         }
         // Basic email format validation for dynamic emails
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (formData.dynamicEmails.some(email => email.address.trim() !== '' && !emailRegex.test(email.address))) {
-            alert("Step 2: Please enter valid email addresses.");
-            return;
+        if (
+          formData.dynamicEmails.some(
+            (email) =>
+              email.address.trim() !== "" && !emailRegex.test(email.address)
+          )
+        ) {
+          alert("Step 2: Please enter valid email addresses.");
+          return;
         }
         break;
       case 3: // TenderPreferencesStep validation
@@ -96,15 +117,15 @@ const MultiStepRegisterForm: React.FC = () => {
         }
         break;
     }
-    
+
     if (currentStep < totalSteps) {
-      setCurrentStep(prev => prev + 1);
+      setCurrentStep((prev) => prev + 1);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(prev => prev - 1);
+      setCurrentStep((prev) => prev - 1);
     }
   };
 
@@ -112,26 +133,47 @@ const MultiStepRegisterForm: React.FC = () => {
     // Final validation for the last step
     if (currentStep === totalSteps) {
       if (!formData.selectedPackage || !formData.paymentMethod) {
-        alert("Step 4: Please select a package and payment method before submitting.");
+        alert(
+          "Step 4: Please select a package and payment method before submitting."
+        );
         return;
       }
     }
-    console.log('Final Registration Data:', formData);
-    alert('Registration Complete! (Check console for data)');
+    console.log("Final Registration Data:", formData);
+    alert("Registration Complete! (Check console for data)");
   };
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <AccountStep formData={formData} updateFormData={updateFormData} />;
+        return (
+          <AccountStep formData={formData} updateFormData={updateFormData} />
+        );
       case 2:
-        return <ContactDetailsStep formData={formData} updateFormData={updateFormData} />;
+        return (
+          <ContactDetailsStep
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
       case 3:
-        return <TenderPreferencesStep formData={formData} updateFormData={updateFormData} />;
+        return (
+          <TenderPreferencesStep
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
       case 4:
-        return <PackageSelectionStep formData={formData} updateFormData={updateFormData} />;
+        return (
+          <PackageSelectionStep
+            formData={formData}
+            updateFormData={updateFormData}
+          />
+        );
       default:
-        return <AccountStep formData={formData} updateFormData={updateFormData} />;
+        return (
+          <AccountStep formData={formData} updateFormData={updateFormData} />
+        );
     }
   };
 
@@ -140,12 +182,14 @@ const MultiStepRegisterForm: React.FC = () => {
       {/* Progress Indicator */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-semibold text-gray-600">Step {currentStep} of {totalSteps}</span>
+          <span className="text-sm font-semibold text-gray-600">
+            Step {currentStep} of {totalSteps}
+          </span>
           <span className="text-sm font-semibold text-[var(--color-primary)]">
-            {currentStep === 1 && 'Account Details'}
-            {currentStep === 2 && 'Contact & Emails'}
-            {currentStep === 3 && 'Tender Preferences'}
-            {currentStep === 4 && 'Package & Payment'}
+            {currentStep === 1 && "Account Details"}
+            {currentStep === 2 && "Contact & Emails"}
+            {currentStep === 3 && "Tender Preferences"}
+            {currentStep === 4 && "Package & Payment"}
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
