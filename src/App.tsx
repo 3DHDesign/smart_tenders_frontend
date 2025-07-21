@@ -15,6 +15,7 @@ import UserAccountPage from './pages/Dashboard/UserAccountPage';
 import WishlistPage from './pages/Dashboard/WishlistPage';
 import ContactUs from './pages/ContactUs';
 import Register from './pages/Auth/Register';
+import TenderDetail from './pages/Tenders/TenderDetail';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/" element={<Home />} /> 
         <Route path="/about-us" element={<AboutUs />} /> 
         <Route path="/tenders" element={<Tenders />} />
+        <Route path="/tenders/:id" element={<TenderDetail />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/register" element={<Register />}/>
         <Route path="/dashboard" element={<DashboardLayout><DashboardPage /></DashboardLayout>} />

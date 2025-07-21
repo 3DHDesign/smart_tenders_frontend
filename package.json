@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.10",
+    "axios": "^1.10.0",
     "country-list": "^2.3.0",
     "formik": "^2.4.6",
     "react": "^19.1.0",
@@ -19,7 +20,8 @@
     "react-router-dom": "^7.6.2",
     "swiper": "^11.2.8",
     "tailwindcss": "^4.1.10",
-    "yup": "^1.6.1"
+    "yup": "^1.6.1",
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
