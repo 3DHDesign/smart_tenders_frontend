@@ -130,6 +130,21 @@ export default function Navbar() {
           >
             Register
           </NavLink>
+
+          <NavLink
+            to="/login"
+            className={({ isActive }) =>
+              `transition-colors duration-300
+               ${isActive
+                 ? 'text-[var(--color-accent-blue-main)] font-semibold'
+                 : isScrolled
+                   ? 'text-gray-700 hover:text-[var(--color-accent-blue-light)]'
+                   : 'text-white hover:text-[var(--color-accent-blue-light)]'
+               }`
+            }
+          >
+            login
+          </NavLink>
         </nav>
 
         {/* Free Tender CTA - Button uses var() internally */}
