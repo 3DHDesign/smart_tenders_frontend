@@ -107,7 +107,7 @@ const TestimonialsSection: React.FC = () => {
               spaceBetween: 25,
             },
           }}
-          className="myTestimonialsSwiper !pb-10" // !pb-10 for pagination dots
+          className="myTestimonialsSwiper !pb-10" 
         >
           {testimonials.map((testimonial, index) => (
             <SwiperSlide key={index}>

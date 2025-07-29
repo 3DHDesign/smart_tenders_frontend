@@ -1,45 +1,76 @@
+// src/pages/Tenders/TenderDetail.tsx
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getTenderById, type Tender } from "../../services/tenderService";
+import { useParams, useNavigate } from "react-router-dom"; // Removed Link import
+import { getTenderById, type Tender } from "../../services/tenderService"; // Corrected import (assuming getTenderById is direct export)
+import { useAuthStore } from '../../stores/authStore'; // Import useAuthStore
+import { toast } from 'react-toastify'; // Import toast 
 
 const TenderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  // Get isAuthenticated, isPackageActive, and authLoading from auth store
+  // NOTE: 'isAuthenticated' here maps to 'isLoggedIn' from authStore.ts
+  const { isLoggedIn, isPackageActive, isLoading: authLoading } = useAuthStore();
+
   const [tender, setTender] = useState<Tender | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // This now handles both data loading AND initial auth check
   const [error, setError] = useState<string | null>(null);
 
+  // --- Combined Effect for Auth Check and Data Fetching ---
   useEffect(() => {
+    // 1. Wait for auth store to finish loading its state
+    if (authLoading) {
+      setLoading(true); // Keep loading state true while auth is loading
+      return;
+    }
+
+    // 2. Perform Authentication and Package Activation Checks
+    // We use isLoggedIn from authStore here
+    if (!isLoggedIn) {
+      toast.warn("Please log in to view tender details.");
+      navigate('/login');
+      return; // Stop further execution
+    }
+
+    if (!isPackageActive) {
+      toast.info("Please activate your package to view tender details.");
+      navigate('/dashboard'); // Or a specific package activation page, like '/dashboard/packages'
+      return; // Stop further execution
+    }
+
+    // 3. If authenticated AND package is active, proceed to fetch tender data
     const fetchTender = async () => {
       if (!id) {
-        setError("Tender ID is missing.");
+        setError("Tender ID is missing in the URL.");
         setLoading(false);
         return;
       }
-      setLoading(true);
-      setError(null);
+      setLoading(true); // Set loading to true for data fetch part
+      setError(null); // Clear previous errors
       try {
         const tenderData = await getTenderById(Number(id));
         setTender(tenderData);
-      } catch (err) {
+      } catch (err: any) { // Catch as 'any' for simpler error message extraction
         console.error("Failed to fetch tender details:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to load tender details."
-        );
+        setError(err.message || "Failed to load tender details. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchTender();
-  }, [id]);
+  }, [id, isLoggedIn, isPackageActive, authLoading, navigate]); // Dependencies for this effect
 
   const closingColor = (due: string) => {
     const d = Math.ceil((new Date(due).getTime() - Date.now()) / 86_400_000);
+    // Using your original styling classes
     if (d <= 2) return "bg-red-100 text-red-800";
     if (d <= 10) return "bg-orange-100 text-orange-800";
     return "bg-gray-100 text-gray-800";
   };
 
+  // --- Render Loading, Error, or Access Denied states ---
+  // Combine auth loading and data loading into one check
   if (loading) {
     return (
       <section className="py-12 wide-container">
@@ -56,6 +87,13 @@ const TenderDetail: React.FC = () => {
         </div>
       </section>
     );
+  }
+
+  // If we've finished loading and determined not authenticated or not active,
+  // the useEffect would have already redirected the user.
+  // This ensures nothing sensitive is rendered if redirection failed for some reason.
+  if (!isLoggedIn || !isPackageActive) {
+      return null; // Component should unmount due to navigation
   }
 
   if (error) {
@@ -120,7 +158,7 @@ const TenderDetail: React.FC = () => {
             The tender you're looking for doesn't exist or has been removed.
           </p>
           <button
-            onClick={() => (window.location.href = "/tenders")}
+            onClick={() => navigate("/tenders")} // Use navigate for SPA transition
             className="bg-[var(--color-primary)] text-white px-6 py-2 rounded-lg hover:bg-[var(--color-primary)]/90 transition"
           >
             Browse Other Tenders
@@ -510,6 +548,11 @@ const TenderDetail: React.FC = () => {
                     </a>
                   </div>
                 ))}
+
+              {/* No documents message */}
+              {!tender.english_tender_url && !tender.sinhala_tender_url && !tender.document_url && (!tender.files || tender.files.length === 0) && (
+                <p className="text-gray-500 italic text-center py-4">No associated documents available.</p>
+              )}
             </div>
           </div>
         </div>

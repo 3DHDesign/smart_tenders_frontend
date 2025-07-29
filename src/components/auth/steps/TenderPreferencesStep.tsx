@@ -1,8 +1,8 @@
- // auth/steps/TenderPreferencesStep.tsx
+// auth/steps/TenderPreferencesStep.tsx
 import React, { useState, useEffect } from "react";
 import type { RegistrationFormData } from "../MultiStepRegisterForm";
-import { apiService, type Category } from '../../../services/api';
-import { FaCheckCircle } from 'react-icons/fa';
+import { apiService, type Category } from "../../../services/api";
+import { FaCheckCircle } from "react-icons/fa";
 
 interface StepProps {
   formData: RegistrationFormData;
@@ -24,10 +24,17 @@ const TenderPreferencesStep: React.FC<StepProps> = ({
       try {
         const fetchedCategories = await apiService.getCategories();
         // --- NEW DEBUGGING LOG ---
-        console.log("API Response - Fetched Categories Data:", fetchedCategories);
+        console.log(
+          "API Response - Fetched Categories Data:",
+          fetchedCategories
+        );
         setCategories(fetchedCategories);
-      } catch (err: any) {
-        setCategoriesError(err.message || "Failed to load tender categories.");
+      } catch (err: unknown) {
+        let errorMessage = "Failed to load tender categories.";
+        if (err instanceof Error) {
+          errorMessage = err.message || errorMessage;
+        }
+        setCategoriesError(errorMessage);
         console.error("API Error - Error fetching categories:", err);
       } finally {
         setIsLoadingCategories(false);
@@ -42,7 +49,10 @@ const TenderPreferencesStep: React.FC<StepProps> = ({
   console.log("  isLoadingCategories:", isLoadingCategories);
   console.log("  categoriesError:", categoriesError);
   console.log("  categories.length:", categories.length);
-  console.log("  Should categories render? ", !isLoadingCategories && !categoriesError && categories.length > 0);
+  console.log(
+    "  Should categories render? ",
+    !isLoadingCategories && !categoriesError && categories.length > 0
+  );
   // --- END NEW DEBUGGING LOGS ---
 
   const handleCategoryChange = (categoryId: number) => {
@@ -54,7 +64,9 @@ const TenderPreferencesStep: React.FC<StepProps> = ({
         ),
       });
     } else {
-      updateFormData({ selectedCategories: [...currentCategories, categoryId] });
+      updateFormData({
+        selectedCategories: [...currentCategories, categoryId],
+      });
     }
   };
 
@@ -68,25 +80,34 @@ const TenderPreferencesStep: React.FC<StepProps> = ({
       </p>
 
       {isLoadingCategories && (
-        <div className="text-center text-gray-600 font-body mb-4">Loading categories...</div>
+        <div className="text-center text-gray-600 font-body mb-4">
+          Loading categories...
+        </div>
       )}
 
       {categoriesError && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+        <div
+          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6"
+          role="alert"
+        >
           <strong className="font-bold">Error!</strong>
           <span className="block sm:inline"> {categoriesError}</span>
         </div>
       )}
 
       {!isLoadingCategories && !categoriesError && categories.length === 0 && (
-        <div className="text-center text-gray-600 font-body mb-4">No tender categories available.</div>
+        <div className="text-center text-gray-600 font-body mb-4">
+          No tender categories available.
+        </div>
       )}
 
       {/* This is the crucial block that should render your categories */}
       {!isLoadingCategories && !categoriesError && categories.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {categories.map((category) => {
-            const isSelected = formData.selectedCategories.includes(category.id);
+            const isSelected = formData.selectedCategories.includes(
+              category.id
+            );
             return (
               <div
                 key={category.id}

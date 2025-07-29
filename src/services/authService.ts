@@ -1,110 +1,94 @@
  // src/services/authService.ts
-import axios from 'axios';
-import { axiosInstance } from './axiosInstance'; // Make sure this path is correct relative to authService.ts
+import axios from "axios";
+import { axiosInstance } from "./axiosInstance"; // Make sure this path is correct relative to authService.ts
 
 // --- Request and Response Type Definitions ---
 // These interfaces define the shape of the data for clarity and type safety.
 
-// UPDATED: RegisterRequest to correctly reflect backend expectations from Postman
 export interface RegisterRequest {
   email: string;
   password: string;
   password_confirmation: string;
-  name: string; // Maps from frontend 'fullName' (backend key)
+  name: string;
   phone: string;
-  address: string; // Maps from frontend 'address1' (backend key)
-  address_line_2?: string; // Optional field (backend key)
-  district: string; // Maps from frontend 'city' (backend key)
+  address: string;
+  address_line_2?: string;
+  district: string;
   province: string;
   country: string;
-  postal_code?: string; // Optional field (backend key)
-  categories: number[]; // Maps from frontend 'selectedCategories' (array of IDs, backend key)
-  package_id: string; // Maps from frontend 'selectedPackage' (backend key)
+  postal_code?: string;
+  categories: number[];
+  package_id: string;
   payment_method: string;
-  emails: string[]; // Maps from frontend 'dynamicEmails.map(e => e.address)' (backend key, expecting an array of strings)
+  emails: string[];
 }
 
-// Response from the register endpoint
 export interface RegisterResponse {
   message: string;
-  user?: { // Example user data returned upon successful registration
+  user?: {
     id: number;
     email: string;
     full_name: string;
-    // ... other user details
   };
-  access_token?: string; // Standard JWT token key
+  access_token?: string;
   token_type?: string;
   expires_in?: number;
-  token?: string; // Added 'token' property based on your console output
+  token?: string;
 }
 
-// CRITICAL FIX: Added 'export' keyword to LoginRequest
 export interface LoginRequest {
   email: string;
   password: string;
 }
 
-// Response from the login endpoint
 export interface LoginResponse {
-  status: string; // "success"
-  code: number;   // 200
-  token: string;  // The actual JWT token (key is 'token', not 'access_token')
-  p_expire?: string;  
+  status: string;
+  code: number;
+  token: string;
+  p_expire?: string;
 }
 
-// Request payload for OTP verification
 export interface VerifyOtpRequest {
   email: string;
   otp: string;
-  user_id?: string; // Added optional user_id field for backend requirement
+  user_id?: string;
 }
 
-// Response from OTP verification/resend endpoints
 export interface OtpResponse {
   message: string;
   token?: string;
-  // Could include a status, or other relevant info
 }
 
-// Request payload for forgot password request
 export interface ForgotPasswordRequest {
   email: string;
 }
 
-// Response for forgot password request
 export interface ForgotPasswordResponse {
   message: string;
 }
 
-// Request payload for forgot password OTP verification
 export interface ForgotPasswordOtpVerifyRequest {
   email: string;
   otp: string;
-  password: string; // <--- NEW: Required by backend for /forgot-password-otp
-  password_confirmation: string; 
+  password: string;
+  password_confirmation: string;
 }
 
-// Response for forgot password OTP verification
 export interface ForgotPasswordOtpVerifyResponse {
   message: string;
   token?: string;
-  // May include a token to proceed to reset password, or just a success message
 }
 
-// Request payload for password reset
 export interface ResetPasswordRequest {
   email: string;
   password: string;
   password_confirmation: string;
-  token: string; // The token received after forgot password OTP verification
+  token: string;
 }
 
-// Response for password reset
 export interface ResetPasswordResponse {
   message: string;
 }
-
 
 // --- Auth Service Functions ---
 export const authService = {
@@ -115,7 +99,9 @@ export const authService = {
    */
   register: async (data: RegisterRequest): Promise<RegisterResponse> => {
     try {
-      const payload: Record<string, any> = {
+      // --- CRITICAL FIX: Explicitly type payload as RegisterRequest ---
+      // This ensures type safety and removes 'any'.
+      const payload: RegisterRequest = {
         email: data.email,
         password: data.password,
         password_confirmation: data.password_confirmation,
@@ -129,29 +115,33 @@ export const authService = {
         package_id: data.package_id,
         payment_method: data.payment_method,
         emails: data.emails,
+        // Conditionally add optional fields only if they are present in data
+        ...(data.address_line_2 && { address_line_2: data.address_line_2 }),
+        ...(data.postal_code && { postal_code: data.postal_code }),
       };
 
-      if (data.address_line_2) {
-        payload.address_line_2 = data.address_line_2;
-      }
-      if (data.postal_code) {
-        payload.postal_code = data.postal_code;
-      }
+      console.log("Sending registration payload:", payload);
 
-      console.log('Sending registration payload:', payload);
-
-      const response = await axiosInstance.post<RegisterResponse>('/register', payload);
+      const response = await axiosInstance.post<RegisterResponse>(
+        "/register",
+        payload
+      );
       return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Registration API Error:', error.response?.data || error.message);
-        if (error.response?.data?.errors) {
-            const validationErrors = Object.values(error.response.data.errors).flat().join(' ');
-            throw new Error(`Registration failed: ${validationErrors}`);
+    } catch (err: unknown) {
+      console.error("Registration API Error:", err);
+      if (axios.isAxiosError(err)) {
+        if (err.response?.data?.errors) {
+          const validationErrors = Object.values(err.response.data.errors)
+            .flat()
+            .join(" ");
+          throw new Error(`Registration failed: ${validationErrors}`);
         }
-        throw new Error(error.response?.data?.message || 'Registration failed. Please check your details.');
+        throw new Error(
+          err.response?.data?.message ||
+            "Registration failed. Please check your details."
+        );
       }
-      throw new Error('An unexpected error occurred during registration.');
+      throw new Error("An unexpected error occurred during registration.");
     }
   },
 
@@ -162,18 +152,23 @@ export const authService = {
    */
   login: async (data: LoginRequest): Promise<LoginResponse> => {
     try {
-      const response = await axiosInstance.post<LoginResponse>('/login', data);
-      return response.data; // Return the full response data
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Login API Error:', error.response?.data || error.message);
-        if (error.response?.data?.errors) {
-            const validationErrors = Object.values(error.response.data.errors).flat().join(' ');
-            throw new Error(`Login failed: ${validationErrors}`);
+      const response = await axiosInstance.post<LoginResponse>("/login", data);
+      return response.data;
+    } catch (err: unknown) {
+      console.error("Login API Error:", err);
+      if (axios.isAxiosError(err)) {
+        if (err.response?.data?.errors) {
+          const validationErrors = Object.values(err.response.data.errors)
+            .flat()
+            .join(" ");
+          throw new Error(`Login failed: ${validationErrors}`);
         }
-        throw new Error(error.response?.data?.message || 'Login failed. Please check your credentials.');
+        throw new Error(
+          err.response?.data?.message ||
+            "Login failed. Please check your credentials."
+        );
       }
-      throw new Error('An unexpected error occurred during login.');
+      throw new Error("An unexpected error occurred during login.");
     }
   },
 
@@ -184,25 +179,33 @@ export const authService = {
    */
   verifyOtp: async (data: VerifyOtpRequest): Promise<OtpResponse> => {
     try {
-      const payload = {
+      const payload: VerifyOtpRequest = { // Explicitly type payload
         email: data.email,
         otp: data.otp,
         user_id: data.email,
       };
-      console.log('Sending verifyOtp payload:', payload);
+      console.log("Sending verifyOtp payload:", payload);
 
-      const response = await axiosInstance.post<OtpResponse>('/verify-otp', payload);
+      const response = await axiosInstance.post<OtpResponse>(
+        "/verify-otp",
+        payload
+      );
       return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('OTP Verification API Error:', error.response?.data || error.message);
-        if (error.response?.data?.errors) {
-            const validationErrors = Object.values(error.response.data.errors).flat().join(' ');
-            throw new Error(`OTP verification failed: ${validationErrors}`);
+    } catch (err: unknown) {
+      console.error("OTP Verification API Error:", err);
+      if (axios.isAxiosError(err)) {
+        if (err.response?.data?.errors) {
+          const validationErrors = Object.values(err.response.data.errors)
+            .flat()
+            .join(" ");
+          throw new Error(`OTP verification failed: ${validationErrors}`);
         }
-        throw new Error(error.response?.data?.message || 'OTP verification failed. Please check the code.');
+        throw new Error(
+          err.response?.data?.message ||
+            "OTP verification failed. Please check the code."
+        );
       }
-      throw new Error('An unexpected error occurred during OTP verification.');
+      throw new Error("An unexpected error occurred during OTP verification.");
     }
   },
 
@@ -213,19 +216,27 @@ export const authService = {
    */
   resendOtp: async (email: string): Promise<OtpResponse> => {
     try {
-      const payload = { email: email };
-      const response = await axiosInstance.post<OtpResponse>('/resend-otp', payload);
+      const payload: { email: string } = { email: email }; // Explicitly type payload
+      const response = await axiosInstance.post<OtpResponse>(
+        "/resend-otp",
+        payload
+      );
       return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Resend OTP API Error:', error.response?.data || error.message);
-        if (error.response?.data?.errors) {
-            const validationErrors = Object.values(error.response.data.errors).flat().join(' ');
-            throw new Error(`Failed to resend OTP: ${validationErrors}`);
+    } catch (err: unknown) {
+      console.error("Resend OTP API Error:", err);
+      if (axios.isAxiosError(err)) {
+        if (err.response?.data?.errors) {
+          const validationErrors = Object.values(err.response.data.errors)
+            .flat()
+            .join(" ");
+          throw new Error(`Failed to resend OTP: ${validationErrors}`);
         }
-        throw new Error(error.response?.data?.message || 'Failed to resend OTP. Please try again.');
+        throw new Error(
+          err.response?.data?.message ||
+            "Failed to resend OTP. Please try again."
+        );
       }
-      throw new Error('An unexpected error occurred while resending OTP.');
+      throw new Error("An unexpected error occurred while resending OTP.");
     }
   },
 
@@ -234,15 +245,26 @@ export const authService = {
    * @param data The forgot password request data (email).
    * @returns A promise resolving to the ForgotPasswordResponse.
    */
-  forgotPasswordRequest: async (data: ForgotPasswordRequest): Promise<ForgotPasswordResponse> => {
+  forgotPasswordRequest: async (
+    data: ForgotPasswordRequest
+  ): Promise<ForgotPasswordResponse> => {
     try {
-      const response = await axiosInstance.post<ForgotPasswordResponse>('/forgot-password-request', data);
+      const response = await axiosInstance.post<ForgotPasswordResponse>(
+        "/forgot-password-request",
+        data
+      );
       return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Failed to send password reset request.');
+    } catch (err: unknown) {
+      console.error("Forgot Password Request Error:", err);
+      if (axios.isAxiosError(err)) {
+        throw new Error(
+          err.response?.data?.message ||
+            "Failed to send password reset request."
+        );
       }
-      throw new Error('An unexpected error occurred during password reset request.');
+      throw new Error(
+        "An unexpected error occurred during password reset request."
+      );
     }
   },
 
@@ -251,30 +273,43 @@ export const authService = {
    * @param data The forgot password OTP verification request data (email, otp).
    * @returns A promise resolving to the ForgotPasswordOtpVerifyResponse.
    */
-  forgotPasswordVerifyOtp: async (data: ForgotPasswordOtpVerifyRequest): Promise<ForgotPasswordOtpVerifyResponse> => {
+  forgotPasswordVerifyOtp: async (
+    data: ForgotPasswordOtpVerifyRequest
+  ): Promise<ForgotPasswordOtpVerifyResponse> => {
     try {
-      // --- CRITICAL FIX: Send password and password_confirmation in the payload ---
-      const payload = {
+      const payload: ForgotPasswordOtpVerifyRequest = { // Explicitly type payload
         email: data.email,
         otp: data.otp,
         password: data.password,
         password_confirmation: data.password_confirmation,
       };
-      console.log('Sending forgotPasswordVerifyOtp payload:', payload);
+      console.log("Sending forgotPasswordVerifyOtp payload:", payload);
 
-      // This endpoint now expects OTP, new password, and confirm password
-      const response = await axiosInstance.post<ForgotPasswordOtpVerifyResponse>('/forgot-password-otp', payload);
+      const response =
+        await axiosInstance.post<ForgotPasswordOtpVerifyResponse>(
+          "/forgot-password-otp",
+          payload
+        );
       return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error('Forgot Password OTP Verification API Error:', error.response?.data || error.message);
-        if (error.response?.data?.errors) {
-            const validationErrors = Object.values(error.response.data.errors).flat().join(' ');
-            throw new Error(`Forgot password OTP verification failed: ${validationErrors}`);
+    } catch (err: unknown) {
+      console.error("Forgot Password OTP Verification API Error:", err);
+      if (axios.isAxiosError(err)) {
+        if (err.response?.data?.errors) {
+          const validationErrors = Object.values(err.response.data.errors)
+            .flat()
+            .join(" ");
+          throw new Error(
+            `Forgot password OTP verification failed: ${validationErrors}`
+          );
         }
-        throw new Error(error.response?.data?.message || 'Forgot password OTP verification failed.');
+        throw new Error(
+          err.response?.data?.message ||
+            "Forgot password OTP verification failed."
+        );
       }
-      throw new Error('An unexpected error occurred during forgot password OTP verification.');
+      throw new Error(
+        "An unexpected error occurred during forgot password OTP verification."
+      );
     }
   },
 
@@ -283,15 +318,23 @@ export const authService = {
    * @param data The reset password request data (email, password, password_confirmation, token).
    * @returns A promise resolving to the ResetPasswordResponse.
    */
-  resetPassword: async (data: ResetPasswordRequest): Promise<ResetPasswordResponse> => {
+  resetPassword: async (
+    data: ResetPasswordRequest
+  ): Promise<ResetPasswordResponse> => {
     try {
-      const response = await axiosInstance.post<ResetPasswordResponse>('/reset-password', data);
+      const response = await axiosInstance.post<ResetPasswordResponse>(
+        "/reset-password",
+        data
+      );
       return response.data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new Error(error.response?.data?.message || 'Password reset failed.');
+    } catch (err: unknown) { // Changed 'any' to 'unknown'
+      console.error("Password Reset Error:", err);
+      if (axios.isAxiosError(err)) {
+        throw new Error(
+          err.response?.data?.message || "Password reset failed."
+        );
       }
-      throw new Error('An unexpected error occurred during password reset.');
+      throw new Error("An unexpected error occurred during password reset.");
     }
   },
 };

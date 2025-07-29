@@ -5,9 +5,29 @@ import ContactDetailsStep from "./steps/ContactDetailsStep";
 import TenderPreferencesStep from "./steps/TenderPreferencesStep";
 import PackageSelectionStep from "./steps/PackageSelectionStep";
 import Button from "../shared/Button";
-import { authService } from '../../services/authService';
+// --- CRITICAL FIX: Explicitly import RegisterRequest as a type ---
+import { authService, type RegisterRequest } from '../../services/authService';
+import axios from 'axios'; // Import axios for type guarding in catch blocks
 
-// ... (RegistrationFormData interface - UNCHANGED) ...
+// This interface defines the shape of the form data collected across all steps.
+// This is already correctly defined here and exported.
+export interface RegistrationFormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  phone: string;
+  address1: string;
+  address2: string;
+  city: string;
+  province: string;
+  country: string;
+  postalCode: string;
+  dynamicEmails: { id: number; address: string; editable: boolean; error: string | null }[];
+  selectedCategories: number[];
+  selectedPackage: string;
+  paymentMethod: string;
+}
 
 interface MultiStepRegisterFormProps {
   onRegistrationSuccess: (email: string) => void;
@@ -42,7 +62,7 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
   const FREE_PACKAGE_ID = "1";
 
   const updateFormData = (newData: Partial<RegistrationFormData>) => {
-    setFormData((prev) => ({ ...prev, ...newData }));
+    setFormData((prev: RegistrationFormData) => ({ ...prev, ...newData }));
   };
 
   const handleNext = () => {
@@ -60,7 +80,10 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
           return;
         }
         break;
-      case 2:
+      case 2: {
+        const hasEmptyDynamicEmail = formData.dynamicEmails.some(email => email.address.trim() === "");
+        const hasInvalidDynamicEmail = formData.dynamicEmails.some(email => email.error !== null);
+
         if (
           !formData.fullName.trim() ||
           !formData.phone.trim() ||
@@ -70,8 +93,6 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
           setError("Step 2: Please fill in all required contact details.");
           return;
         }
-        const hasEmptyDynamicEmail = formData.dynamicEmails.some(email => email.address.trim() === "");
-        const hasInvalidDynamicEmail = formData.dynamicEmails.some(email => email.error !== null);
 
         if (hasEmptyDynamicEmail || hasInvalidDynamicEmail) {
             setError("Step 2: Please ensure all notification email addresses are valid and filled.");
@@ -83,6 +104,7 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
           return;
         }
         break;
+      }
       case 3:
         if (formData.selectedCategories.length === 0) {
           setError("Step 3: Please select at least one tender category.");
@@ -130,7 +152,8 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
 
     setIsLoading(true);
     try {
-      const payloadToSend = {
+      // --- CRITICAL FIX: Use the imported RegisterRequest type directly ---
+      const payloadToSend: RegisterRequest = {
         email: formData.email,
         password: formData.password,
         password_confirmation: formData.confirmPassword,
@@ -147,36 +170,28 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
       };
 
       if (formData.address2) {
-        (payloadToSend as any).address_line_2 = formData.address2;
+        payloadToSend.address_line_2 = formData.address2;
       }
       if (formData.postalCode) {
-        (payloadToSend as any).postal_code = formData.postalCode;
+        payloadToSend.postal_code = formData.postalCode;
       }
 
       console.log("Submitting Registration Payload:", payloadToSend);
 
-      const response = await authService.register(payloadToSend as any);
+      const response = await authService.register(payloadToSend);
       console.log("Registration successful response object:", response);
 
-      // --- CRITICAL FIX: REMOVED TOKEN SAVING HERE ---
-      // Token is now only saved AFTER successful OTP verification.
-      // console.log("Response.access_token:", response.access_token);
-      // console.log("Response.token:", response.token);
-      // if (response.access_token) {
-      //   localStorage.setItem('authToken', response.access_token);
-      //   console.log("Auth token stored (access_token path):", response.access_token);
-      // } else if (response.token) {
-      //   localStorage.setItem('authToken', response.token);
-      //   console.log("Auth token stored (token path):", response.token);
-      // } else {
-      //   console.warn("Registration successful, but no token (access_token or token) found in response.");
-      // }
+      onRegistrationSuccess(formData.email);
 
-      onRegistrationSuccess(formData.email); // Redirect to OTP verification page
-
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration failed:", err);
-      setError(err.message || "Registration failed. Please try again.");
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || err.message || "Registration failed. Please try again.");
+      } else if (err instanceof Error) {
+        setError(err.message || "Registration failed. Please try again.");
+      } else {
+        setError("An unexpected error occurred during registration.");
+      }
     } finally {
       setIsLoading(false);
     }

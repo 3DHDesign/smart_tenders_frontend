@@ -1,6 +1,9 @@
 @import "tailwindcss";
+@import 'swiper/css';
+@import 'swiper/css/effect-fade';
+@import 'swiper/css/pagination';
+@import 'swiper/css/navigation';
 
-/* Must come first */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap");
 
@@ -31,7 +34,7 @@ h6 {
   font-family: var(--font-heading);
 }
 
-/* Default .container */
+/* Default container (similar to Tailwind) */
 .container {
   width: 100%;
   margin-left: auto;
@@ -66,7 +69,23 @@ h6 {
   }
 }
 
-/* Custom responsive container classes (like Tailwind 3.3 config) */
+/* ✅ Fixed wide-container */
+.wide-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .wide-container {
+    padding-left: 10rem;
+    padding-right: 10rem;
+  }
+}
+
+/* Optional: custom containers if you still want them */
 .sm-container {
   max-width: 640px;
   margin-inline: auto;
@@ -97,14 +116,6 @@ h6 {
   padding-inline: 2.5rem;
 }
 
-/* If you want big desktop padding default */
-.wide-container {
-  max-width: 100%;
-  margin-inline: auto;
-  padding-left: 10rem;
-  padding-right: 10rem;
-}
-
 @layer components {
   .btn-primary {
     @apply bg-[--color-primary] text-white px-6 py-2 rounded-md transition;
@@ -121,6 +132,7 @@ h6 {
   }
 }
 
+/* Swiper override */
 .swiper-slide {
   width: 130px !important;
 }

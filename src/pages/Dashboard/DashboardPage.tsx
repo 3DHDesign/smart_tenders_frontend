@@ -1,145 +1,198 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { FiMail, FiCheckCircle, FiPhone, FiHome, FiGlobe, FiMapPin, FiPackage } from "react-icons/fi"; // Added more icons
+import PageBanner from "../../components/shared/PageBanner";
 import Button from "../../components/shared/Button";
-import { FiMail, FiCheckCircle } from "react-icons/fi";
-import PageBanner from '../../components/shared/PageBanner'; // Import PageBanner
-
-// Mock User Data (no API connection yet)
-const mockUser = {
-  name: "Jagad Chandana",
-  email: "jagadchandana@gmail.com",
-  referenceNo: "REF8793",
-  avatar: "https://placehold.co/100x100/00A3DF/FFFFFF?text=JC", // Placeholder avatar
-  package: {
-    name: "Premium Plan",
-    details: "Unlimited Tenders, Advanced Analytics",
-    status: "Active",
-    renewalDate: "2026-07-01",
-  },
-  favoritesCount: 12, // Example: number of favorited tenders
-  emails: [
-    { id: 1, address: "jagad.chandana@example.com", editable: true },
-    { id: 2, address: "backup.email@example.com", editable: true },
-  ],
-};
+import {
+  getDashboardData,
+  type UserDetails,
+  type UserMail,
+  type Payment, 
+} from "../../services/userService";
 
 const DashboardPage: React.FC = () => {
-  const [userEmails, setUserEmails] = useState(mockUser.emails);
+  const [user, setUser] = useState<UserDetails | null>(null);
+  const [emails, setEmails] = useState<UserMail[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleEmailChange = (id: number, newAddress: string) => {
-    setUserEmails((prevEmails) =>
-      prevEmails.map((email) =>
-        email.id === id ? { ...email, address: newAddress } : email
-      )
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const res = await getDashboardData();
+        setUser(res);
+        setEmails(res.user_mails);
+      } catch (err) {
+        console.error(err);
+        // Optionally, show an error message to the user
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, []);
+
+  const handleEmailChange = (id: number, value: string) => {
+    setEmails(prev =>
+      prev.map(email => (email.id === id ? { ...email, email: value } : email))
     );
   };
 
   const handleSaveEmail = (id: number) => {
-    const emailToSave = userEmails.find((email) => email.id === id);
-    if (emailToSave) {
-      console.log(`Saving email ${emailToSave.address} for ID: ${id}`);
-      alert(`Email saved: ${emailToSave.address}`); // Using alert for demo, replace with proper UI feedback
+    const email = emails.find(e => e.id === id);
+    if (email) {
+      alert(`Email saved: ${email.email}`);
+      // In a real application, you would send this to your backend
     }
   };
 
+  const getMeta = (key: string): string => {
+    return user?.metas.find(m => m.key === key)?.value || "N/A"; // Changed default to N/A
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="text-xl font-medium text-gray-500 animate-pulse">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <div className="text-xl font-medium text-red-600">Failed to load user data. Please try again.</div>
+      </div>
+    );
+  }
+
   return (
-    // This div controls the padding and max-width for the content.
-    <div className="max-w-screen-xl mx-auto  space-y-8">
-      {/* Page Banner for Dashboard - Rendered here */}
+    <div className="max-w-screen-xl mx-auto p-4 sm:p-6 lg:p-8 space-y-10">
       <PageBanner
-        title={`Hello, ${mockUser.name}!`} // Dynamic title from mockUser
-        backgroundImage="/images/download.png" // Using dashboard-banner-bg.jpg as requested
+        title={`Hello, ${user.name}!`} 
+        backgroundImage="/images/download.png"
       />
 
-    <div className="p-4">
-          {/* User Profile and Package Details Card - Removed redundant "Hello, Jagad Chandana" heading */}
-      <div className="bg-white rounded-3xl shadow-xl p-8 flex flex-col md:flex-row items-center md:items-start gap-8 border border-gray-100 ">
+      {/* Profile & Package Section */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-center gap-6 md:gap-8 border border-gray-100">
         <img
-          src={mockUser.avatar}
-          alt={mockUser.name}
-          className="w-28 h-28 rounded-full object-cover border-4 border-[var(--color-primary)] shadow-md"
+          src={user.avatar_url}
+          alt={user.name}
+          className="w-28 h-28 rounded-full border-4 border-teal-400 object-cover shadow-md"
         />
-        <div className="text-center md:text-left flex-grow space-y-2">
-          {/* Removed: <h1 className="text-4xl font-extrabold font-heading text-[var(--color-dark)] mb-1 tracking-tight">Hello, {mockUser.name}</h1> */}
-          <p className="text-gray-500 font-body text-lg mb-0.5 flex items-center justify-center md:justify-start gap-2">
-            <FiMail className="text-[var(--color-primary)]" />{" "}
-            <span className="font-semibold">{mockUser.email}</span>
+        <div className="flex-grow space-y-2 text-center md:text-left">
+          <h2 className="text-2xl font-bold text-gray-800">{user.name}</h2>
+          <p className="text-base text-gray-600 flex items-center justify-center md:justify-start gap-2">
+            <FiMail className="text-teal-500 text-lg" />
+            {user.email}
           </p>
-          <p className="text-gray-400 font-body text-md mb-2">
-            Reference No:{" "}
-            <span className="font-semibold text-gray-700">
-              {mockUser.referenceNo}
-            </span>
-          </p>
-
-          <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mt-2">
-            <span className="bg-[var(--color-primary)]/90 text-white px-5 py-2 rounded-full text-base font-semibold shadow-sm">
-              Package: {mockUser.package.name}{" "}
-              <span className="ml-1 text-xs font-normal">
-                ({mockUser.package.status})
-              </span>
-            </span>
-            <span className="text-gray-700 text-sm bg-gray-100 px-3 py-1 rounded-full">
-              Renews: {mockUser.package.renewalDate}
-            </span>
-            <button className="bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white px-5 py-2 rounded-full text-base font-bold shadow-md transition-all duration-200">
-              RENEW MY ACCOUNT
-            </button>
-          </div>
+          <p className="text-sm text-gray-500">Ref No: <span className="font-semibold">{user.reference_code}</span></p>
+          <p className="text-sm text-gray-500">Status: <span className="font-semibold text-green-600">{user.status}</span></p>
         </div>
-        <div className="flex-shrink-0 text-center md:text-right bg-[var(--color-primary)]/10 rounded-2xl px-6 py-4 shadow-inner">
-          <span className="text-5xl font-extrabold text-[var(--color-primary)] drop-shadow-lg">
-            {mockUser.favoritesCount}
-          </span>
-          <p className="text-gray-600 font-body text-base mt-1">Favorites</p>
+        <div className="text-center bg-teal-50 rounded-xl px-5 py-3 border border-teal-100 shadow-sm flex flex-col items-center">
+          <FiPackage className="text-teal-600 text-3xl mb-1" />
+          <p className="text-sm text-gray-700">Current Plan</p>
+          <p className="text-xl font-bold text-teal-700 mt-1">{user.user_package.package.name}</p>
+          <p className="text-sm text-gray-600 mt-1">Expires: <span className="font-medium">{user.user_package.expiration_date}</span></p>
         </div>
       </div>
 
-      {/* Editable Email Fields */}
-      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 mt-5">
-        <h2 className="text-3xl font-extrabold font-heading text-[var(--color-dark)] mb-3 tracking-tight">
-          Email Settings
-        </h2>
-        <p className="text-gray-500 font-body mb-6">
-          You have{" "}
-          <span className="font-bold text-[var(--color-primary)]">
-            2 free email slots
-          </span>{" "}
-          for tender notifications. You can edit these addresses below:
-        </p>
-        <div className="space-y-5">
-          {userEmails.map((email) => (
+      {/* Contact Information Section */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-gray-100">
+        <h3 className="text-2xl font-semibold mb-5 text-gray-800">Contact Information</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-gray-700">
+          <p className="flex items-center gap-3 text-lg"><FiPhone className="text-blue-500" /> <strong>Phone:</strong> {getMeta("phone")}</p>
+          <p className="flex items-center gap-3 text-lg"><FiHome className="text-blue-500" /> <strong>Address:</strong> {getMeta("address")}</p>
+          <p className="flex items-center gap-3 text-lg"><FiGlobe className="text-blue-500" /> <strong>Country:</strong> {getMeta("country")}</p>
+          <p className="flex items-center gap-3 text-lg"><FiMapPin className="text-blue-500" /> <strong>Province:</strong> {getMeta("province")}</p>
+          <p className="flex items-center gap-3 text-lg"><FiMapPin className="text-blue-500" /> <strong>District:</strong> {getMeta("district")}</p>
+        </div>
+      </div>
+
+      {/* Preferred Categories Section */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-gray-100">
+        <h3 className="text-2xl font-semibold mb-5 text-gray-800">Preferred Categories</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {user.categories.map(cat => (
             <div
-              key={email.id}
-              className="flex flex-col sm:flex-row items-center gap-3 bg-gray-50 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+              key={cat.id}
+              className="bg-gray-50 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
             >
-              <div className="flex items-center w-full sm:w-auto gap-2">
-                <FiMail className="text-[var(--color-primary)] text-xl" />
+              <img src={cat.icon_url} alt={cat.name} className="w-12 h-12 object-contain mb-2" />
+              <p className="font-semibold text-sm text-gray-800">{cat.name}</p>
+              <p className="text-xs text-gray-500">{cat.tender_count} Tenders</p>
+            </div>
+          ))}
+        </div>
+      </div> 
+
+      {/* Tender Notification Emails Section */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-gray-100">
+        <h3 className="text-2xl font-semibold mb-5 text-gray-800">Tender Notification Emails</h3>
+        <div className="space-y-4">
+          {emails.map(email => (
+            <div key={email.id} className="flex flex-col sm:flex-row items-center gap-3">
+              <div className="relative flex-grow w-full">
+                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                  type="email"
-                  value={email.address}
+                  type="email" // Added type for better validation
+                  value={email.email}
                   onChange={(e) => handleEmailChange(email.id, e.target.value)}
-                  className="flex-grow p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] font-body bg-white text-gray-700 shadow-inner transition-all"
-                  disabled={!email.editable}
+                  className="flex-grow w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-200 text-gray-700"
+                  placeholder="Enter email address"
                 />
               </div>
-              {email.editable && (
-                <Button
-                  label={
-                    <span className="flex items-center gap-1">
-                      <FiCheckCircle className="inline text-lg" /> Save
-                    </span>
-                  }
-                  className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/80 text-white px-6 py-2 rounded-lg text-base font-semibold shadow-md w-full sm:w-auto"
-                  onClick={() => handleSaveEmail(email.id)}
-                />
-              )}
+              <Button
+                label={<span className="flex gap-2 items-center text-base"><FiCheckCircle /> Save</span>}
+                className="w-full sm:w-auto px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg shadow-md transition-colors duration-200 font-medium"
+                onClick={() => handleSaveEmail(email.id)}
+              />
             </div>
           ))}
         </div>
       </div>
-    </div>
 
-      {/* Placeholder for other dashboard overview sections */}
+      {/* Payment History Section */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-gray-100">
+        <h3 className="text-2xl font-semibold mb-5 text-gray-800">Payment History</h3>
+        {user.payments.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+            <p className="text-lg">No payments made yet.</p>
+            <p className="text-sm mt-2">Your payment history will appear here once you make a transaction.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+            <table className="min-w-full text-sm text-left divide-y divide-gray-200">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th scope="col" className="p-4 font-semibold text-gray-700 uppercase tracking-wider">Date</th>
+                  <th scope="col" className="p-4 font-semibold text-gray-700 uppercase tracking-wider">Type</th>
+                  <th scope="col" className="p-4 font-semibold text-gray-700 uppercase tracking-wider">Amount</th>
+                  <th scope="col" className="p-4 font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                  <th scope="col" className="p-4 font-semibold text-gray-700 uppercase tracking-wider">Transaction ID</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {user.payments.map((p: Payment) => (
+                  <tr key={p.id} className="hover:bg-gray-50">
+                    <td className="p-4 text-gray-700">{p.created_at_human}</td>
+                    <td className="p-4 text-gray-700">{p.payment_type}</td>
+                    <td className="p-4 text-gray-700 font-medium">Rs. {p.amount}</td>
+                    <td className="p-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        p.status === "completed" ? "bg-green-100 text-green-800" :
+                        p.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                        "bg-red-100 text-red-800"
+                      }`}>
+                        {p.status.charAt(0).toUpperCase() + p.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="p-4 text-gray-600 font-mono">{p.transaction_id}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

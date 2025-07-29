@@ -1,10 +1,10 @@
 // src/pages/Home.tsx
-import React from 'react';
-import Hero from '../components/home/Hero';
+import React from 'react'; 
 import TenderListingSection from '../components/home/TenderListingSection';
 import DescriptionSection from '../components/home/DescriptionSection';
 import BrowseCategories from '../components/home/BrowseCategories';
-import PricingSection from '../components/home/PricingSection';
+import PricingSection from '../components/home/PricingSection'; 
+import Hero from '../components/home/Hero';
 
 const Home: React.FC = () => { // Defined as a regular const
   return (

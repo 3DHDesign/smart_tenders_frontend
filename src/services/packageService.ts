@@ -22,7 +22,7 @@ export interface Package {
 // Define the structure of the API response for packages
 // Corrected to reflect the nested 'packages' array
 export interface PackagesResponse {
-  status: string;
+  status: string; 
   code: number;
   data: { // <--- Added 'data' object here
     packages: Package[]; // <--- Added 'packages' array inside 'data'

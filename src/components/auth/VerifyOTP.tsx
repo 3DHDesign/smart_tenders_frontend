@@ -1,7 +1,7 @@
 // src/pages/Auth/VerifyOTP.tsx
 import React, { useState, useEffect } from 'react';
 import { FiMail, FiCheckCircle } from 'react-icons/fi';
-import { authService } from '../../services/authService';
+import { authService } from '../../services/authService'; 
 
 interface VerifyOTPProps {
   email: string;
@@ -18,7 +18,9 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ email, onVerified, onBackToRegist
   const [canResend, setCanResend] = useState<boolean>(false);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    // --- CRITICAL FIX: Use ReturnType<typeof setTimeout> for timer type ---
+    let timer: ReturnType<typeof setTimeout>; // Fixed NodeJS.Timeout error
+
     if (resendTimer > 0 && !canResend) {
       timer = setTimeout(() => setResendTimer(prev => prev - 1), 1000);
     } else if (resendTimer === 0) {
@@ -43,23 +45,19 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ email, onVerified, onBackToRegist
     try {
       const response = await authService.verifyOtp({ email, otp });
       setSuccessMessage(response.message || "OTP verified successfully!");
-      console.log("OTP Verified response object:", response); // Log the full response object
+      console.log("OTP Verified response object:", response);
 
-      // --- CRITICAL FIX: Ensure token is saved here from OTP verification response ---
-      // This is the ONLY place the token should be saved after registration flow.
-      if (response.token) { // Assuming 'token' is the key for the token in the OTP verified response
+      if (response.token) {
         localStorage.setItem('authToken', response.token);
         console.log("Auth token stored after OTP verification (VerifyOTP path):", response.token);
-        window.location.href = '/dashboard'; // Redirect to dashboard
+        window.location.href = '/dashboard';
       } else {
         console.warn("OTP verification successful, but no token found in response.");
-        // If no token is returned, but verification was successful, still call onVerified
-        // This might redirect to login, as per parent's onVerified logic.
         onVerified();
       }
 
-    } catch (err: any) {
-      setError(err.message || "Failed to verify OTP.");
+    } catch (err: unknown) { // Changed 'any' to 'unknown'
+      setError(err instanceof Error ? err.message : "Failed to verify OTP.");
       console.error("OTP Verification Error:", err);
     } finally {
       setIsLoading(false);
@@ -77,8 +75,8 @@ const VerifyOTP: React.FC<VerifyOTPProps> = ({ email, onVerified, onBackToRegist
       const response = await authService.resendOtp(email);
       setSuccessMessage(response.message || "A new OTP has been sent! Check your email.");
       console.log("OTP Resent:", response);
-    } catch (err: any) {
-      setError(err.message || "Failed to resend OTP.");
+    } catch (err: unknown) { // Changed 'any' to 'unknown'
+      setError(err instanceof Error ? err.message : "Failed to resend OTP.");
       console.error("Resend OTP Error:", err);
       setCanResend(true);
       setResendTimer(0);

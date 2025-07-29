@@ -1,64 +1,80 @@
 // src/stores/authStore.ts
 import { create } from 'zustand';
-
-// Define the shape of the user data you expect after login
-interface User {
-  id: number;
-  email: string;
-  full_name: string;
-  // Add any other user properties you receive from your backend
-}
+import { getDashboardData, type UserDetails } from '../services/userService'; // Import UserDetails and getDashboardData
+import { toast } from 'react-toastify'; // For user feedback
 
 // Define the shape of your auth state
 interface AuthState {
   token: string | null;
-  user: User | null;
-  isLoggedIn: boolean;
+  user: UserDetails | null; // This now uses the comprehensive UserDetails type
+  isLoggedIn: boolean; // THIS IS THE isAuthenticated STATUS
   isLoading: boolean; // For global auth loading (e.g., initial check)
   error: string | null; // For global auth errors
+  isPackageActive: boolean; // Tracks if the user's package status is 'active'
 
   // Actions
-  setAuth: (token: string, user: User) => void;
+  setAuth: (token: string, user: UserDetails) => void; // User type is now UserDetails
+  setUserData: (user: UserDetails) => void; // To update user data from DashboardPage
   clearAuth: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  initializeAuth: () => void; // To check localStorage on app load
+  initializeAuth: () => Promise<void>; // This function will fetch user data
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   user: null,
-  isLoggedIn: false,
+  isLoggedIn: false, // Default to false
   isLoading: true, // Start as true to indicate initial auth check
   error: null,
+  isPackageActive: false, // Default to false
 
   setAuth: (token, user) => {
     localStorage.setItem('authToken', token); // Persist token
-    set({ token, user, isLoggedIn: true, isLoading: false, error: null });
+    set({
+      token,
+      user,
+      isLoggedIn: true, // Set to true here
+      isLoading: false,
+      error: null,
+      isPackageActive: user.status === 'active', // Derived from user.status
+    });
+  },
+
+  setUserData: (user) => { // This action is called from DashboardPage after fetching data
+    set({
+      user,
+      isLoggedIn: true, // Always true when setting user data
+      isPackageActive: user.status === 'active', // Update active status
+    });
   },
 
   clearAuth: () => {
     localStorage.removeItem('authToken'); // Remove token
-    set({ token: null, user: null, isLoggedIn: false, isLoading: false, error: null });
+    set({ token: null, user: null, isLoggedIn: false, isLoading: false, error: null, isPackageActive: false });
   },
 
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),
 
-  initializeAuth: () => {
+  initializeAuth: async () => {
     const storedToken = localStorage.getItem('authToken');
     if (storedToken) {
-      // In a real app, you'd want to verify this token with your backend
-      // (e.g., /api/user endpoint) to get fresh user data and ensure token validity.
-      // For now, we'll assume it's valid and set a placeholder user.
-      // A more robust solution would involve fetching user data here.
-      set({ token: storedToken, isLoggedIn: true, isLoading: false, user: { id: 0, email: 'unknown@example.com', full_name: 'Authenticated User' } });
+      try {
+        const userData = await getDashboardData();
+        get().setAuth(storedToken, userData);
+      } catch (err) {
+        console.error("Failed to re-authenticate or fetch user data on app load:", err);
+        toast.error("Session expired or invalid. Please log in again.", { autoClose: 5000 });
+        get().clearAuth();
+      } finally {
+        get().setLoading(false);
+      }
     } else {
-      set({ isLoggedIn: false, isLoading: false });
+      set({ isLoggedIn: false, isLoading: false, isPackageActive: false });
     }
   },
 }));
 
-// Call initializeAuth when the store is first created
-// This ensures that when the app loads, it checks for an existing token
-useAuthStore.getState().initializeAuth();
+// IMPORTANT: Ensure 'useAuthStore.getState().initializeAuth();' is NOT at the very bottom of this file.
+// It should only be called once in your App.tsx's useEffect.
