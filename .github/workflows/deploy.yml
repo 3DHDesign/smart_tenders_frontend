@@ -1,0 +1,40 @@
+name: 🚀 Build & Deploy React to cPanel
+
+on:
+  push:
+    branches:
+      - main   # only deploy when pushing to main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout your repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Set up Node.js for building the React app
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'   # use the version you develop with
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # 4️⃣ Build the React project
+      - name: Build project
+        run: npm run build
+
+      # 5️⃣ Deploy only the build (dist) folder via FTP
+      - name: 📂 Deploy to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /public_html/       # cPanel directory
+          local-dir: ./dist               # upload ONLY the dist folder
+          method: ftp
