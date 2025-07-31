@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";   // ✅ Import navigate hook
 import { apiService, type Category } from "../../services/api";
 
 const BrowseCategories: React.FC = () => {
@@ -6,10 +7,12 @@ const BrowseCategories: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const navigate = useNavigate(); // ✅ for redirecting to /tenders?category=ID
+
   useEffect(() => {
     const fetchUserCategories = async () => {
       try {
-        const response = await apiService.getUserCategories(); // You already created this
+        const response = await apiService.getUserCategories();
         setCategories(response);
       } catch (err: unknown) {
         if (err instanceof Error) {
@@ -48,7 +51,8 @@ const BrowseCategories: React.FC = () => {
             <div
               key={cat.id}
               className="flex items-center p-4 bg-white rounded-lg shadow-md border border-gray-100
-                         hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-in-out"
+                         hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-in-out cursor-pointer"
+              onClick={() => navigate(`/tenders?category=${cat.id}`)} // ✅ Navigate on click
             >
               <div
                 className="flex-shrink-0 flex items-center justify-center
