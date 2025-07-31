@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Button from "../shared/Button";
-import axiosInstance from "../../services/axiosInstance"; 
+import axiosInstance from "../../services/axiosInstance";
 import { useTenderStore } from "../../stores/useTenderStore";
 
 interface Newspaper {
@@ -37,7 +37,7 @@ const TenderFilters: React.FC = () => {
 
   // 🟠 HANDLE FILTER SUBMIT
   const handleFilter = () => {
-    const filters: Record<string, any> = {};
+    const filters: Record<string, string | number | undefined> = {};
     if (code) filters.code = code;
     if (keyword) filters.searchParam = keyword;
     if (publishedDate) filters.publishedDate = publishedDate;
