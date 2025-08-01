@@ -5,6 +5,7 @@ import DescriptionSection from '../components/home/DescriptionSection';
 import BrowseCategories from '../components/home/BrowseCategories';
 import PricingSection from '../components/home/PricingSection'; 
 import Hero from '../components/home/Hero';
+import FaqSection from '../components/home/FaqSection';
 
 const Home: React.FC = () => { // Defined as a regular const
   return (
@@ -14,6 +15,7 @@ const Home: React.FC = () => { // Defined as a regular const
       <DescriptionSection />
       <BrowseCategories />
       <PricingSection />
+      <FaqSection />
     </>
   );
 };

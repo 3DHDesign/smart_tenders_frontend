@@ -109,6 +109,7 @@ const TenderListingSection: React.FC = () => {
               <Button
                 label="Upload Tenders Now"
                 className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/80"
+                onClick={() => window.location.href = "/free-tender-upload"} 
               />
             </div>
           </aside>

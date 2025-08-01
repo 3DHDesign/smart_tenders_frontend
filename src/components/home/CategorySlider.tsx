@@ -74,7 +74,7 @@ export default function CategorySlider() {
                     src={cat.icon_url}
                     alt={cat.name}
                     className="w-full h-full object-contain"
-                    style={{ width: "36px", height: "36px" }}
+                    style={{ width: "36px", height: "36px" ,filter: "brightness(0) invert(1)"}}
                     onError={(e) => {
                       e.currentTarget.src = `https://placehold.co/36x36/cccccc/000000?text=${cat.name
                         .substring(0, 2)
