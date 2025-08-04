@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Button from "../shared/Button";
 import { packageService, type Package } from "../../services/packageService"; // Import packageService and Package type
+import { Link } from "react-router-dom";
 
 // --- REMOVED: getFeaturesForPackage function is no longer needed ---
 
@@ -68,9 +69,9 @@ const PricingSection: React.FC = () => {
 
         {/* Render packages if not loading, no error, and packages array is not empty */}
         {!isLoading && !error && packages.length > 0 && (
-          <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-4">
             {packages.map((pkg) => {
-              const highlight = pkg.name.toLowerCase().includes("elite"); // Still highlight 'Elite'
+           const highlight = packages[packages.length - 1].id === pkg.id;           // Still highlight 'Elite'
 
               let buttonLabel = "Choose Plan";
               if (pkg.name.toLowerCase().includes("trial"))
@@ -126,6 +127,7 @@ const PricingSection: React.FC = () => {
                   </ul> */}
 
                   <div className="p-6 border-t">
+                  <Link to="/register" className="block">
                     <Button
                       label={buttonLabel}
                       className={`w-full py-3 text-base sm:text-lg font-semibold rounded-lg transition-all duration-300
@@ -138,6 +140,7 @@ const PricingSection: React.FC = () => {
                       // You might add an onClick handler here to select the package or navigate
                       // onClick={() => handleChoosePlan(pkg.id)}
                     />
+                    </Link>
                   </div>
                 </article>
               );

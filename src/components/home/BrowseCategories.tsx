@@ -12,7 +12,7 @@ const BrowseCategories: React.FC = () => {
   useEffect(() => {
     const fetchUserCategories = async () => {
       try {
-        const response = await apiService.getUserCategories();
+        const response = await apiService.getCategories();
         setCategories(response);
       } catch (err: unknown) {
         if (err instanceof Error) {
@@ -63,7 +63,7 @@ const BrowseCategories: React.FC = () => {
                   <img
                     src={cat.icon_url}
                     alt={cat.name}
-                    className="w-9 h-9 object-contain"
+                    className="w-9 h-9 object-contain filter invert brightness-200"
                     onError={(e) => {
                       e.currentTarget.src = `https://placehold.co/36x36/cccccc/000000?text=${cat.name
                         .substring(0, 2)

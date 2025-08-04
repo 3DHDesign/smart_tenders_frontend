@@ -1,4 +1,4 @@
-// src/stores/authStore.ts
+ // src/stores/authStore.ts
 import { create } from 'zustand';
 import { getDashboardData, type UserDetails } from '../services/userService'; // Import UserDetails and getDashboardData
 import { toast } from 'react-toastify'; // For user feedback

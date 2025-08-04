@@ -4,10 +4,13 @@ import { useTenderStore } from "../../stores/useTenderStore";
 import Button from "../shared/Button";
 import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 import { type Tender } from "../../services/tenderService";
+import { useAuthStore } from "../../stores/authStore";
 
 const TenderListingSection: React.FC = () => {
   const { list, loading, fetchPage, counts } = useTenderStore();
   const navigate = useNavigate(); // Initialize useNavigate hook
+  const { isLoggedIn, user } = useAuthStore();
+  const canViewSensitiveFields = isLoggedIn && user?.status === "active";
 
   // Fetch all tenders on first mount.
   useEffect(() => {
@@ -103,13 +106,13 @@ const TenderListingSection: React.FC = () => {
               <p className="text-lg font-semibold font-body mb-3">
                 To be connected with Buyers & Suppliers
               </p>
-              <h3 className="text-2xl font-bold font-heading mb-4">
+              <h3 className="text-2xl font-bold  font-heading mb-4">
                 Upload Your Tenders&nbsp;FREE
               </h3>
               <Button
                 label="Upload Tenders Now"
-                className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/80"
-                onClick={() => window.location.href = "/free-tender-upload"} 
+                className="w-full bg-[var(--color-primary)]  text-center hover:bg-[var(--color-primary)]/80"
+                onClick={() => (window.location.href = "/free-tender-upload")}
               />
             </div>
           </aside>
@@ -154,11 +157,45 @@ const TenderListingSection: React.FC = () => {
                       </div>
                       <div>
                         <span className="font-semibold">Published:</span>{" "}
-                        {new Date(t.date).toLocaleDateString()}
+                        {canViewSensitiveFields ? (
+                          new Date(t.date).toLocaleDateString()
+                        ) : (
+                          <Link
+                            to="/login"
+                            className="text-[var(--color-primary)] underline hover:opacity-80"
+                          >
+                            Login to view
+                          </Link>
+                        )}
                       </div>
+
                       <div>
                         <span className="font-semibold">Closing:</span>{" "}
                         {new Date(t.due_date).toLocaleDateString()}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Source:</span>{" "}
+                        {canViewSensitiveFields ? (
+                          (t.papers ?? []).length > 0 ? (
+                            (t.papers ?? []).map((paper, idx, arr) => (
+                              <span key={paper.id || idx}>
+                                {paper.name}
+                                {idx < arr.length - 1 && (
+                                  <span className="mx-1 text-gray-400">|</span>
+                                )}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-500">—</span>
+                          )
+                        ) : (
+                          <Link
+                            to="/login"
+                            className="text-[var(--color-primary)] underline hover:opacity-80"
+                          >
+                            Login to view
+                          </Link>
+                        )}
                       </div>
                     </div>
 

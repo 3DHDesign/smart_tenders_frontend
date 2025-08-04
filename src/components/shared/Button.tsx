@@ -21,18 +21,19 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   return (
     <button
-      type={type}
-      disabled={disabled}
-      {...rest}                                         
-      className={`inline-flex items-center gap-2
-        bg-blue-700 hover:bg-blue-800
-        ${disabled ? "opacity-50 cursor-not-allowed" : ""}
-        text-white text-sm font-medium px-5 py-2 rounded-md transition
-        ${className}`}
-    >
-      {Icon && <Icon size={16} />}
-      {label}
-    </button>
+    type={type}
+    disabled={disabled}
+    {...rest}
+    className={`inline-flex items-center justify-center gap-2
+      bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/80 cursor-pointer 
+      ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+      text-white text-sm font-medium px-5 py-2 rounded-md transition
+      ${className}`}
+  >
+    {Icon && <Icon size={16} />}
+    {label}
+  </button>
+  
   );
 };
 

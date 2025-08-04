@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaMapMarkerAlt,
   FaChevronDown,
@@ -10,6 +10,7 @@ import {
 import Button from "../shared/Button";
 import { useTenderStore } from "../../stores/useTenderStore";
 import { useTaxonomyStore } from "../../stores/useTaxonomyStore";
+import { useAuthStore } from "../../stores/authStore";
 
 /* ---------- tiny helpers ---------- */
 const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
@@ -45,6 +46,9 @@ const TenderItemShimmer: React.FC = () => (
 );
 
 const TenderPageList: React.FC = () => {
+  const { isLoggedIn, user } = useAuthStore();
+  const canViewSensitiveFields = isLoggedIn && user?.status === "active";
+
   /* store hooks */
   const {
     list,
@@ -379,12 +383,46 @@ const TenderPageList: React.FC = () => {
                       {t.district || "—"}
                     </div>
                     <div>
-                      <strong>Published:</strong>{" "}
-                      {new Date(t.date).toLocaleDateString()}
+                      <span className="font-semibold">Published:</span>{" "}
+                      {canViewSensitiveFields ? (
+                        new Date(t.date).toLocaleDateString()
+                      ) : (
+                        <Link
+                          to="/login"
+                          className="text-[var(--color-primary)] underline hover:opacity-80"
+                        >
+                          Login to view
+                        </Link>
+                      )}
                     </div>
+
                     <div>
                       <strong>Closing:</strong>{" "}
                       {new Date(t.due_date).toLocaleDateString()}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Source:</span>{" "}
+                      {canViewSensitiveFields ? (
+                        (t.papers ?? []).length > 0 ? (
+                          (t.papers ?? []).map((paper, idx, arr) => (
+                            <span key={paper.id || idx}>
+                              {paper.name}
+                              {idx < arr.length - 1 && (
+                                <span className="mx-1 text-gray-400">|</span>
+                              )}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-500">—</span>
+                        )
+                      ) : (
+                        <Link
+                          to="/login"
+                          className="text-[var(--color-primary)] underline hover:opacity-80"
+                        >
+                          Login to view
+                        </Link>
+                      )}
                     </div>
                   </div>
 
