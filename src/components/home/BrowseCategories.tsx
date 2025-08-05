@@ -42,8 +42,7 @@ const BrowseCategories: React.FC = () => {
           Browse Categories
         </h2>
         <p className="text-gray-600 font-body max-w-2xl mx-auto mb-10">
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
-          eiusmod tempor.
+        Find the right tender for your business. Explore our curated list of categories to easily discover government and private sector projects that match your expertise.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

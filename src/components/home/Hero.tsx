@@ -16,23 +16,19 @@ export default function Hero() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔍 Search state
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<TenderSearchResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
 
-  // 🖼 Fetch slides
   useEffect(() => {
     const fetchSlides = async () => {
       setIsLoading(true);
       setError(null);
       try {
         const fetchedSlides = await slideService.getSlides();
-        console.log("Fetched Hero Slides:", fetchedSlides);
         setSlides(fetchedSlides);
       } catch (err: unknown) {
-        console.error("Error fetching hero slides:", err);
         setError(
           err instanceof Error ? err.message : "Failed to load hero slides."
         );
@@ -43,7 +39,6 @@ export default function Hero() {
     fetchSlides();
   }, []);
 
-  // 🎞 Auto-play interval for slides
   useEffect(() => {
     if (slides.length > 0) {
       const interval = setInterval(() => {
@@ -55,21 +50,16 @@ export default function Hero() {
 
   const activeSlide = slides[activeIndex];
 
-  // 📝 Title splitting (last word highlighted)
   const { headline, highlight } = useMemo(() => {
-    if (!activeSlide?.title) {
-      return { headline: "", highlight: "" };
-    }
+    if (!activeSlide?.title) return { headline: "", highlight: "" };
     const words = activeSlide.title.split(" ");
     if (words.length > 1) {
-      const lastWord = words[words.length - 1];
-      const remainingWords = words.slice(0, -1).join(" ");
-      return { headline: remainingWords, highlight: lastWord };
+      const lastWord = words.pop()!;
+      return { headline: words.join(" "), highlight: lastWord };
     }
     return { headline: "", highlight: activeSlide.title };
   }, [activeSlide?.title]);
 
-  // 🔍 Search tenders (debounced)
   useEffect(() => {
     if (!query.trim()) {
       setSearchResults([]);
@@ -84,13 +74,13 @@ export default function Hero() {
       } catch (err) {
         console.error("Error searching tenders:", err);
       }
-    }, 400); // debounce 400ms
+    }, 400);
 
     return () => clearTimeout(timeout);
   }, [query]);
 
   return (
-    <section className="wide-container relative min-h-[90vh] text-white flex items-center overflow-hidden">
+    <section className="wide-container relative min-h-[90vh] text-white flex items-center overflow-hidden px-4 sm:px-0">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-white z-20">
           Loading slides...
@@ -101,7 +91,6 @@ export default function Hero() {
           Error: {error}
         </div>
       )}
-
       {!isLoading && !error && slides.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-white z-20">
           No slides available.
@@ -125,15 +114,15 @@ export default function Hero() {
             ></motion.div>
           </AnimatePresence>
 
-          {/* Content */}
-          <div className="relative z-10 text-left max-w-2xl">
+          {/* ⬇️ Content */}
+          <div className="relative z-10 text-left max-w-full sm:max-w-2xl bg-black/60 sm:bg-transparent px-4 py-6 sm:p-0 rounded-md w-full">
             <motion.h1
               key={`h1-${activeSlide.id}`}
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -50 }}
               transition={{ duration: 0.8 }}
-              className="text-4xl md:text-5xl font-extrabold leading-tight mb-4 font-heading"
+              className="text-2xl sm:text-4xl md:text-5xl font-extrabold leading-snug sm:leading-tight mb-4 font-heading break-words"
             >
               <span className="text-white">{headline}</span>{" "}
               <span className="text-[var(--color-primary)]">{highlight}</span>
@@ -145,14 +134,14 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-lg text-white/90 mb-8 font-body"
+              className="text-sm sm:text-lg text-white/90 mb-6 sm:mb-8 font-body leading-snug"
             >
               {activeSlide.intro}
             </motion.p>
 
-            {/* 🔍 Search Box */}
+            {/* 🔍 Search Bar */}
             <div className="relative w-full max-w-2xl">
-              <div className="bg-white/10 backdrop-blur-md rounded-full px-4 py-2 flex items-center">
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 sm:py-2.5 flex items-center">
                 <input
                   type="text"
                   placeholder="Search tenders..."
@@ -174,7 +163,7 @@ export default function Hero() {
                 </div>
               </div>
 
-              {/* 🔽 Dropdown results */}
+              {/* 🔽 Dropdown */}
               {showDropdown && searchResults.length > 0 && (
                 <div className="absolute mt-2 bg-white text-black rounded-lg shadow-lg w-full max-h-64 overflow-auto z-50">
                   {searchResults.map((item) => (
@@ -191,9 +180,7 @@ export default function Hero() {
                       <p className="text-xs text-gray-600">
                         {item.code} • {item.province}/{item.district}
                       </p>
-
-                      {/* 📄 Papers as badges */}
-                      {item.papers && item.papers.length > 0 && (
+                      {item.papers?.length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-1">
                           {item.papers.map((p, idx) => (
                             <span
@@ -211,8 +198,10 @@ export default function Hero() {
               )}
             </div>
 
-            {/* Category Slider */}
-            <CategorySlider />
+            {/* 📦 Category Slider */}
+            <div className="mt-8 sm:mt-10">
+              <CategorySlider />
+            </div>
           </div>
         </>
       )}

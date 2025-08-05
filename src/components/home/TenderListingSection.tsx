@@ -10,7 +10,7 @@ const TenderListingSection: React.FC = () => {
   const { list, loading, fetchPage, counts } = useTenderStore();
   const navigate = useNavigate(); // Initialize useNavigate hook
   const { isLoggedIn, user } = useAuthStore();
-  const canViewSensitiveFields = isLoggedIn && user?.status === "active";
+  const canViewSensitiveFields = isLoggedIn && (user?.status === "active" || user?.status === "pending");
 
   // Fetch all tenders on first mount.
   useEffect(() => {

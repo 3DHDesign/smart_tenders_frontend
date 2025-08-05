@@ -47,7 +47,7 @@ const TenderItemShimmer: React.FC = () => (
 
 const TenderPageList: React.FC = () => {
   const { isLoggedIn, user } = useAuthStore();
-  const canViewSensitiveFields = isLoggedIn && user?.status === "active";
+  const canViewSensitiveFields = isLoggedIn && (user?.status === "active" || user?.status === "pending");
 
   /* store hooks */
   const {
@@ -157,7 +157,7 @@ const TenderPageList: React.FC = () => {
 
   /* ---------- render ---------- */
   return (
-    <section className="bg-gray-50 py-8 sm:py-10 lg:py-12 wide-container">
+    <section className="py-8 sm:py-10 lg:py-12 wide-container">
       <div className="container mx-auto">
         {/* ===== counts bar ===== */}
         <div className="grid grid-cols-2 sm:grid-cols-4 bg-white rounded-lg shadow-md mb-8 border border-gray-100 overflow-hidden">
@@ -202,8 +202,8 @@ const TenderPageList: React.FC = () => {
 
             {/* Categories */}
             <div className="bg-white rounded-lg shadow-md">
-              <div className="p-4 border-b border-gray-200 flex items-center gap-2 font-heading text-lg font-semibold">
-                <FaThList className="text-[var(--color-primary)]" />
+              <div className="p-4 bg-[var(--color-primary)] text-white border-b border-gray-200 flex items-center gap-2 font-heading text-lg font-semibold">
+                <FaThList className="text-white" />
                 <span>Tenders By Categories</span>
               </div>
 
@@ -252,8 +252,8 @@ const TenderPageList: React.FC = () => {
 
             {/* Locations */}
             <div className="bg-white rounded-lg shadow-md">
-              <div className="p-4 border-b border-gray-200 flex items-center gap-2 font-heading text-lg font-semibold">
-                <FaMapMarkerAlt className="text-[var(--color-primary)]" />
+              <div className="p-4 border-b bg-[var(--color-primary)] text-white border-gray-200 flex items-center gap-2 font-heading text-lg font-semibold">
+                <FaMapMarkerAlt className="text-white" />
                 <span>Tenders By Locations</span>
               </div>
 
@@ -278,63 +278,69 @@ const TenderPageList: React.FC = () => {
                 </div>
               )}
 
-              <ul className="divide-y divide-gray-100">
-                {byProvince.map((p) => (
-                  <li key={p.province}>
-                    <div
-                      className={`flex justify-between p-3 cursor-pointer ${
-                        activeProv === shortenProvinceName(p.province) &&
-                        !activeDistrict
-                          ? "bg-gray-100 font-semibold text-[var(--color-primary)]"
-                          : "hover:bg-gray-50"
-                      }`}
-                      onClick={() => {
-                        applyProvince(p.province);
-                        if (p.districts.length > 0) {
-                          setOpenProv((s) => ({
-                            ...s,
-                            [p.province]: !s[p.province],
-                          }));
-                        }
-                      }}
-                    >
-                      <span>
-                        {p.province?.trim()} ({p.total})
-                      </span>
-                      {p.districts.length > 0 &&
-                        (openProv[p.province] ? (
-                          <FaChevronDown className="text-gray-500" />
-                        ) : (
-                          <FaChevronRight className="text-gray-500" />
-                        ))}
-                    </div>
+<ul className="divide-y divide-gray-100">
+    {byProvince
+      .slice() // Create a shallow copy to avoid mutating the original array
+      .sort((a, b) => {
+        // Put null province at the end
+        if (a.province === null) return 1;
+        if (b.province === null) return -1;
+        // Sort the rest alphabetically
+        return a.province.localeCompare(b.province);
+      })
+      .map((p) => (
+        <li key={p.province || "null-province"}>
+          <div
+            className={`flex justify-between p-3 cursor-pointer ${
+              activeProv === shortenProvinceName(p.province) && !activeDistrict
+                ? "bg-gray-100 font-semibold text-[var(--color-primary)]"
+                : "hover:bg-gray-50"
+            }`}
+            onClick={() => {
+              applyProvince(p.province);
+              if (p.districts.length > 0) {
+                setOpenProv((s) => ({
+                  ...s,
+                  [p.province]: !s[p.province],
+                }));
+              }
+            }}
+          >
+            <span>
+              {p.province?.trim() || "Unassigned"} ({p.total})
+            </span>
+            {p.districts.length > 0 &&
+              (openProv[p.province] ? (
+                <FaChevronDown className="text-gray-500" />
+              ) : (
+                <FaChevronRight className="text-gray-500" />
+              ))}
+          </div>
 
-                    {openProv[p.province] && p.districts.length > 0 && (
-                      <ul className="bg-gray-50 border-t border-gray-100">
-                        {p.districts.map((d) => (
-                          <li
-                            key={d.district}
-                            className={`flex justify-between pl-8 p-2 cursor-pointer text-sm ${
-                              activeProv === shortenProvinceName(p.province) &&
-                              activeDistrict === d.district?.trim()
-                                ? "bg-gray-100 font-semibold text-[var(--color-primary)]"
-                                : "hover:bg-gray-100"
-                            }`}
-                            onClick={() =>
-                              applyDistrict(p.province, d.district)
-                            }
-                          >
-                            <span>
-                              {d.district?.trim()} ({d.total})
-                            </span>
-                            <FaChevronRight className="text-gray-400 text-xs" />
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ))}
-              </ul>
+          {openProv[p.province] && p.districts.length > 0 && (
+            <ul className="bg-gray-50 border-t border-gray-100">
+              {p.districts.map((d) => (
+                <li
+                  key={d.district}
+                  className={`flex justify-between pl-8 p-2 cursor-pointer text-sm ${
+                    activeProv === shortenProvinceName(p.province) &&
+                    activeDistrict === d.district?.trim()
+                      ? "bg-gray-100 font-semibold text-[var(--color-primary)]"
+                      : "hover:bg-gray-100"
+                  }`}
+                  onClick={() => applyDistrict(p.province, d.district)}
+                >
+                  <span>
+                    {d.district?.trim()} ({d.total})
+                  </span>
+                  <FaChevronRight className="text-gray-400 text-xs" />
+                </li>
+              ))}
+            </ul>
+          )}
+        </li>
+      ))}
+  </ul>
             </div>
           </aside>
 
@@ -461,7 +467,7 @@ const TenderPageList: React.FC = () => {
                 <Button
                   label="Prev"
                   disabled={page === 1 || loading}
-                  className="px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  className="px-3 py-1  text-gray-700 hover:bg-gray-800"
                   onClick={() => {
                     fetchPage(page - 1, true);
                     scrollTop();
@@ -475,7 +481,7 @@ const TenderPageList: React.FC = () => {
                     className={`px-3 py-1 rounded ${
                       n === page
                         ? "bg-[var(--color-primary)] text-white"
-                        : "bg-white text-gray-800 hover:bg-gray-100"
+                        : "bg-gray-500 text-gray-800 hover:bg-[var(--color-primary)]"
                     }`}
                     onClick={() => {
                       fetchPage(n, true);
@@ -488,14 +494,14 @@ const TenderPageList: React.FC = () => {
                 <Button
                   label="Next"
                   disabled={page === lastPage || loading}
-                  className="px-3 py-1 bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  className="px-3 py-1   text-gray-700 hover:bg-gray-300"
                   onClick={() => {
                     fetchPage(page + 1, true);
                     scrollTop();
                   }}
                 />
               </nav>
-            )}
+            )} 
           </main>
         </div>
       </div>

@@ -31,7 +31,9 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pt-16"> {/* Add pt-16 to offset Navbar */}
+    <div>
+      <div className="bg-black/50 h-[60px] sm:h-[100px]"></div>
+      <div className="bg-gray-50 min-h-screen "> {/* Add pt-16 to offset Navbar */}
       <div className="container mx-auto py-8">
         {!isRegistered ? (
           // Render the multi-step registration form if not yet registered
@@ -47,6 +49,8 @@ const Register: React.FC = () => {
         )}
       </div>
     </div>
+    </div>
+   
   );
 };
 

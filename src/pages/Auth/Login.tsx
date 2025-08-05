@@ -66,7 +66,9 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pt-16 flex items-center justify-center">
+    <div>
+      <div className="bg-black/50 h-[60px] sm:h-[100px]"></div>
+    <div className="bg-gray-50    flex items-center justify-center">
       <div className="bg-white rounded-xl shadow-xl p-8 md:p-10 lg:p-12 border border-gray-100 max-w-md w-full mx-auto my-8">
         <h2 className="text-2xl font-bold font-heading text-[var(--color-dark)] mb-6 text-center">
           Login to Your Account
@@ -157,6 +159,8 @@ const Login: React.FC = () => {
         </div>
       </div>
     </div>
+    </div>
+    
   );
 };
 

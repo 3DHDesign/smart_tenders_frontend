@@ -1,79 +1,116 @@
 // src/pages/Tenders/TenderDetail.tsx
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Removed Link import
-import { getTenderById, type Tender } from "../../services/tenderService"; // Corrected import (assuming getTenderById is direct export)
-import { useAuthStore } from '../../stores/authStore'; // Import useAuthStore
-import { toast } from 'react-toastify'; // Import toast 
+import { useParams, useNavigate } from "react-router-dom";
+import { getTenderById, type Tender } from "../../services/tenderService";
+import { useAuthStore } from "../../stores/authStore";
+import { toast } from "react-toastify";
+
+// Importing all the necessary icons from react-icons
+import {
+  FaExternalLinkAlt,
+  FaTimesCircle,
+  FaSmile, 
+  FaImage,
+} from "react-icons/fa";
+
+// Reusable component for displaying a document or image
+
+// Reusable component to display the image preview
+const TenderImagePreview: React.FC<{ label: string; url: string }> = ({
+  label,
+  url,
+}) => (
+  <div className="border border-gray-200 rounded-lg shadow-sm overflow-hidden p-2">
+    <h4 className="text-sm font-medium text-gray-600 mb-2">{label}</h4>
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block relative group w-full h-full"
+    >
+      <img
+        src={url}
+        alt={label}
+        className="w-full h-auto rounded-lg object-contain transition-transform duration-300"
+      />
+      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-50 transition-opacity duration-300 rounded-lg">
+        <span className="text-white text-xl font-bold flex items-center gap-2">
+          View Image <FaExternalLinkAlt className="text-base" />
+        </span>
+      </div>
+    </a>
+  </div>
+);
 
 const TenderDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  // Get isAuthenticated, isPackageActive, and authLoading from auth store
-  // NOTE: 'isAuthenticated' here maps to 'isLoggedIn' from authStore.ts
-  const { isLoggedIn, isPackageActive, isLoading: authLoading } = useAuthStore();
+  const {
+    isLoggedIn,
+    isPackageActive,
+    isLoading: authLoading,
+  } = useAuthStore();
 
   const [tender, setTender] = useState<Tender | null>(null);
-  const [loading, setLoading] = useState(true); // This now handles both data loading AND initial auth check
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- Combined Effect for Auth Check and Data Fetching ---
   useEffect(() => {
-    // 1. Wait for auth store to finish loading its state
     if (authLoading) {
-      setLoading(true); // Keep loading state true while auth is loading
+      setLoading(true);
       return;
     }
 
-    // 2. Perform Authentication and Package Activation Checks
-    // We use isLoggedIn from authStore here
     if (!isLoggedIn) {
       toast.warn("Please log in to view tender details.");
-      navigate('/login');
-      return; // Stop further execution
+      navigate("/login");
+      return;
     }
 
     if (!isPackageActive) {
       toast.info("Please activate your package to view tender details.");
-      navigate('/dashboard'); // Or a specific package activation page, like '/dashboard/packages'
-      return; // Stop further execution
+      navigate("/dashboard");
+      return;
     }
 
-    // 3. If authenticated AND package is active, proceed to fetch tender data
     const fetchTender = async () => {
       if (!id) {
         setError("Tender ID is missing in the URL.");
         setLoading(false);
         return;
       }
-      setLoading(true); // Set loading to true for data fetch part
-      setError(null); // Clear previous errors
+      setLoading(true);
+      setError(null);
       try {
         const tenderData = await getTenderById(Number(id));
         setTender(tenderData);
-      } catch (err: any) { // Catch as 'any' for simpler error message extraction
+      } catch (err: unknown) {
         console.error("Failed to fetch tender details:", err);
-        setError(err.message || "Failed to load tender details. Please try again.");
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to load tender details. Please try again.";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
     };
 
     fetchTender();
-  }, [id, isLoggedIn, isPackageActive, authLoading, navigate]); // Dependencies for this effect
+  }, [id, isLoggedIn, isPackageActive, authLoading, navigate]);
 
   const closingColor = (due: string) => {
     const d = Math.ceil((new Date(due).getTime() - Date.now()) / 86_400_000);
-    // Using your original styling classes
     if (d <= 2) return "bg-red-100 text-red-800";
     if (d <= 10) return "bg-orange-100 text-orange-800";
     return "bg-gray-100 text-gray-800";
   };
 
-  // --- Render Loading, Error, or Access Denied states ---
-  // Combine auth loading and data loading into one check
   if (loading) {
     return (
-      <section className="py-12 wide-container">
+      <>
+       <section className="py-12 wide-container">
+        
         <div className="container mx-auto max-w-5xl bg-white rounded-2xl shadow-sm p-8 animate-pulse">
           <div className="h-8 bg-gray-200 rounded-full w-3/4 mb-6"></div>
           <div className="grid grid-cols-2 gap-4 mb-8">
@@ -86,35 +123,23 @@ const TenderDetail: React.FC = () => {
           <div className="h-64 bg-gray-200 rounded-xl"></div>
         </div>
       </section>
+      </>
+     
     );
   }
 
-  // If we've finished loading and determined not authenticated or not active,
-  // the useEffect would have already redirected the user.
-  // This ensures nothing sensitive is rendered if redirection failed for some reason.
   if (!isLoggedIn || !isPackageActive) {
-      return null; // Component should unmount due to navigation
+    return null;
   }
 
   if (error) {
     return (
+
+      
       <section className="py-12 wide-container">
         <div className="container mx-auto max-w-5xl text-center bg-white p-8 rounded-2xl shadow-sm">
-          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+            <FaTimesCircle />
           </div>
           <h2 className="text-2xl font-bold mb-2 text-gray-800">
             Error Loading Tender
@@ -135,21 +160,8 @@ const TenderDetail: React.FC = () => {
     return (
       <section className="py-12 wide-container">
         <div className="container mx-auto max-w-5xl text-center bg-white p-8 rounded-2xl shadow-sm">
-          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+            <FaSmile />
           </div>
           <h2 className="text-2xl font-bold mb-2 text-gray-800">
             Tender Not Found
@@ -158,7 +170,7 @@ const TenderDetail: React.FC = () => {
             The tender you're looking for doesn't exist or has been removed.
           </p>
           <button
-            onClick={() => navigate("/tenders")} // Use navigate for SPA transition
+            onClick={() => navigate("/tenders")}
             className="bg-[var(--color-primary)] text-white px-6 py-2 rounded-lg hover:bg-[var(--color-primary)]/90 transition"
           >
             Browse Other Tenders
@@ -169,396 +181,125 @@ const TenderDetail: React.FC = () => {
   }
 
   return (
-    <section className="py-8 wide-container">
-      <div className="container mx-auto max-w-5xl bg-white rounded-2xl shadow-sm overflow-hidden">
-        {/* Header with status */}
-        <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] p-6 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">
-                {tender.title}
-              </h1>
-              <p className="text-sm opacity-90">Tender Code: {tender.code}</p>
-            </div>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${closingColor(
-                tender.due_date
-              )}`}
-            >
-              {Math.max(
-                0,
-                Math.ceil(
-                  (new Date(tender.due_date).getTime() - Date.now()) /
-                    86_400_000
-                )
-              )}{" "}
-              days left
-            </span>
-          </div>
-        </div>
+   <>
 
-        {/* Main content */}
-        <div className="p-6 md:p-8">
-          {/* Key details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-500 mb-1">
-                Published Date
-              </h3>
-              <p className="text-gray-800">
-                {new Date(tender.date).toLocaleDateString()}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-500 mb-1">
-                Closing Date
-              </h3>
-              <p className="text-gray-800">
-                {new Date(tender.due_date).toLocaleDateString()}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-500 mb-1">
-                Location
-              </h3>
-              <p className="text-gray-800">
-                {[tender.province, tender.district]
-                  .filter(Boolean)
-                  .join(", ") || "Not specified"}
-              </p>
-            </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-500 mb-1">
-                Status
-              </h3>
-              <p className="text-gray-800 capitalize">
-                {tender.status || "N/A"}
-              </p>
-            </div>
-          </div>
+<title>{tender.title} - {tender.code} | SmartTenders.lk</title>
 
-          {/* Description */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2 text-[var(--color-primary)]"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Overview
-            </h2>
-            <div className="prose max-w-none text-gray-700">
-              {tender.intro && <p className="mb-4">{tender.intro}</p>}
-              {tender.description && <p>{tender.description}</p>}
-              {!tender.intro && !tender.description && (
-                <p className="text-gray-500 italic">
-                  No detailed description available.
-                </p>
-              )}
-            </div>
-          </div>
+{/* 2. Dynamic Meta Description */}
+<meta
+  name="description"
+  content={`Official tender notice: "${tender.title}" from ${tender.papers && tender.papers.length > 0
+    ? tender.papers.map((paper) => paper.name).join(", ")
+    : "N/A"}. Published on ${new Date(tender.date).toLocaleDateString()}, closes on ${new Date(tender.due_date).toLocaleDateString()}. Location: ${tender.district}, ${tender.province}.`}
+/>
 
-          {/* Categories */}
-          {tender.categories && tender.categories.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2 text-[var(--color-primary)]"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
+{/* 3. Dynamic Keywords */}
+<meta
+  name="keywords"
+  content={`${tender.title}, ${tender.code}, ${tender.papers && tender.papers.length > 0
+    ? tender.papers.map((paper) => paper.name).join(", ")
+    : "N/A"}, tender notice, Sri Lanka tenders, ${tender.district}, ${tender.province}, ${tender.categories?.map(c => c.name).join(', ')}`}
+/>
+
+{/* 4. Canonical Link Tag (Important for SEO) */}
+<link rel="canonical" href={`https://smarttenders.lk/tenders/${id}`} />
+
+{/* 5. Open Graph Tags for Social Sharing */}
+<meta property="og:title" content={tender.title} />
+<meta property="og:description" content={`Official tender notice: "${tender.title}" from ${tender.papers && tender.papers.length > 0
+                      ? tender.papers.map((paper) => paper.name).join(", ")
+                      : "N/A"}. Published on ${new Date(tender.date).toLocaleDateString()}.`} />
+<meta property="og:url" content={`https://smarttenders.lk/tenders/${id}`} />
+<meta property="og:type" content="article" /> {/* Use 'article' for a single page of content */}
+<meta property="og:image" content={tender.english_tender_url || tender.sinhala_tender_url || 'https://smarttenders.lk/images/default-og-image.jpg'} />
+
+    <section className="bg-gray-100 min-h-screen">
+      {/* Header background div for a specific UX effect */}
+      <div className="bg-black/50 h-[60px] sm:h-[100px]"></div>
+
+      <div className="py-8 wide-container">
+        <div className="container p-0 mx-auto max-w-5xl overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            {/* Header with status */}
+            <div className="bg-[var(--color-primary)] p-6 text-white">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold mb-2">
+                    {tender.title}
+                  </h1>
+                  {/* The key details in a single line as requested */}
+                  <p className="text-sm opacity-90">
+                    <span className="font-semibold">Code:</span> {tender.code} |{" "}
+                    <span className="font-semibold">Location:</span>{" "}
+                    {[tender.province, tender.district]
+                      .filter(Boolean)
+                      .join(", ") || "N/A"}{" "}
+                    | <span className="font-semibold">Categories:</span>{" "}
+                    {tender.categories && tender.categories.length > 0
+                      ? tender.categories.map((cat) => cat.name).join(", ")
+                      : "N/A"}{" "}
+                    | <span className="font-semibold">Published In:</span>{" "}
+                    {tender.papers && tender.papers.length > 0
+                      ? tender.papers.map((paper) => paper.name).join(", ")
+                      : "N/A"} {" "}
+                      | <span className="font-semibold">Publish:</span> {new Date(tender.date).toLocaleDateString()} {" "} 
+                      | <span className="font-semibold">Closing:</span> {new Date(tender.due_date).toLocaleDateString()}{" "} 
+                  </p>
+                </div>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-bold ${closingColor(
+                    tender.due_date
+                  )}`}
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Categories
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {tender.categories.map((cat) => (
-                  <span
-                    key={cat.id}
-                    className="bg-[var(--color-primary)]/10 text-[var(--color-primary)] px-3 py-1 rounded-full text-sm font-medium"
-                  >
-                    {cat.name}
-                  </span>
-                ))}
+                  {Math.max(
+                    0,
+                    Math.ceil(
+                      (new Date(tender.due_date).getTime() - Date.now()) /
+                        86_400_000
+                    )
+                  )}{" "}
+                  days left
+                </span>
               </div>
             </div>
-          )}
 
-          {/* Published In */}
-          {tender.papers && tender.papers.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2 text-[var(--color-primary)]"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Published In
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {tender.papers.map((paper) => (
-                  <span
-                    key={paper.id}
-                    className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium"
-                  >
-                    {paper.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+            {/* Main content */}
+            <div className="p-6 md:p-8">
+              
 
-          {/* Documents Section */}
-          <div>
-            <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2 text-[var(--color-primary)]"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Documents
-            </h2>
-
-            {/* Document List - Simple Display */}
-            <div className="space-y-4">
-              {tender.english_tender_url && (
-                <div className="flex items-center p-4 border border-gray-200 rounded-lg">
-                  <div className="bg-[var(--color-primary)] text-white p-2 rounded-lg mr-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+              {/* Image Preview Section */}
+              {tender.english_tender_url || tender.sinhala_tender_url ? (
+                <div className="mb-8">
+                  <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
+                    <FaImage className="text-[var(--color-primary)]" />
+                    Tender Notice
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                    {tender.english_tender_url && (
+                      <TenderImagePreview
+                        label="English Tender Notice"
+                        url={tender.english_tender_url}
                       />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-800">
-                      English Tender Notice
-                    </h3>
-                    <p className="text-sm text-gray-500">PDF Document</p>
-                  </div>
-                  <a
-                    href={tender.english_tender_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 flex items-center"
-                  >
-                    Open
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 ml-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    )}
+                    {tender.sinhala_tender_url && (
+                      <TenderImagePreview
+                        label="Sinhala Tender Notice"
+                        url={tender.sinhala_tender_url}
                       />
-                    </svg>
-                  </a>
+                    )}
+                  </div>
                 </div>
-              )}
+              ) : null}
 
-              {tender.sinhala_tender_url && (
-                <div className="flex items-center p-4 border border-gray-200 rounded-lg">
-                  <div className="bg-[var(--color-secondary)] text-white p-2 rounded-lg mr-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-800">
-                      Sinhala Tender Notice
-                    </h3>
-                    <p className="text-sm text-gray-500">PDF Document</p>
-                  </div>
-                  <a
-                    href={tender.sinhala_tender_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 flex items-center"
-                  >
-                    Open
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 ml-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                      />
-                    </svg>
-                  </a>
-                </div>
-              )}
-
-              {tender.document_url && (
-                <div className="flex items-center p-4 border border-gray-200 rounded-lg">
-                  <div className="bg-gray-600 text-white p-2 rounded-lg mr-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-800">
-                      Main Tender Document
-                    </h3>
-                    <p className="text-sm text-gray-500">PDF Document</p>
-                  </div>
-                  <a
-                    href={tender.document_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 flex items-center"
-                  >
-                    Open
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 ml-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                      />
-                    </svg>
-                  </a>
-                </div>
-              )}
-
-              {tender.files &&
-                tender.files.map((file) => (
-                  <div
-                    key={file.id}
-                    className="flex items-center p-4 border border-gray-200 rounded-lg"
-                  >
-                    <div className="bg-gray-500 text-white p-2 rounded-lg mr-4">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-800">
-                        {file.title || file.type}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {file.file.split(".").pop()?.toUpperCase()} File
-                      </p>
-                    </div>
-                    <a
-                      href={`http://apitenders.3dhdesign.info/storage/${file.file}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 flex items-center"
-                    >
-                      Open
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 ml-1"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                        />
-                      </svg>
-                    </a>
-                  </div>
-                ))}
-
-              {/* No documents message */}
-              {!tender.english_tender_url && !tender.sinhala_tender_url && !tender.document_url && (!tender.files || tender.files.length === 0) && (
-                <p className="text-gray-500 italic text-center py-4">No associated documents available.</p>
-              )}
+              {/* Overview */}
             </div>
           </div>
         </div>
       </div>
     </section>
+   </>
   );
 };
 
 export default TenderDetail;
+
