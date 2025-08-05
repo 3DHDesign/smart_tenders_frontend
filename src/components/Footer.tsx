@@ -80,7 +80,7 @@ const Footer: React.FC = () => {
        TENDERS
       </h3>
       <ul className="space-y-2">
-       <li><Link to="/tenders" className="text-gray-200 hover:text-[var(--color-primary)]">All Tenders</Link></li> git 
+       <li><Link to="/tenders" className="text-gray-200 hover:text-[var(--color-primary)]">All Tenders</Link></li> 
       </ul>
      </div>
 

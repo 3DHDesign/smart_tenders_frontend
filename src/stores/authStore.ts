@@ -1,56 +1,58 @@
- // src/stores/authStore.ts
+// src/stores/authStore.ts
 import { create } from 'zustand';
-import { getDashboardData, type UserDetails } from '../services/userService'; // Import UserDetails and getDashboardData
-import { toast } from 'react-toastify'; // For user feedback
+import { getDashboardData, type UserDetails } from '../services/userService';
+import { toast } from 'react-toastify';
 
-// Define the shape of your auth state
 interface AuthState {
   token: string | null;
-  user: UserDetails | null; // This now uses the comprehensive UserDetails type
-  isLoggedIn: boolean; // THIS IS THE isAuthenticated STATUS
-  isLoading: boolean; // For global auth loading (e.g., initial check)
-  error: string | null; // For global auth errors
-  isPackageActive: boolean; // Tracks if the user's package status is 'active'
+  user: UserDetails | null;
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  error: string | null;
+  isPackageActive: boolean;
 
-  // Actions
-  setAuth: (token: string, user: UserDetails) => void; // User type is now UserDetails
-  setUserData: (user: UserDetails) => void; // To update user data from DashboardPage
+  setAuth: (token: string, user: UserDetails) => void;
+  setUserData: (user: UserDetails) => void;
   clearAuth: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  initializeAuth: () => Promise<void>; // This function will fetch user data
+  initializeAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   user: null,
-  isLoggedIn: false, // Default to false
-  isLoading: true, // Start as true to indicate initial auth check
+  isLoggedIn: false,
+  isLoading: true,
   error: null,
-  isPackageActive: false, // Default to false
+  isPackageActive: false,
 
   setAuth: (token, user) => {
-    localStorage.setItem('authToken', token); // Persist token
+    localStorage.setItem('authToken', token);
     set({
       token,
       user,
-      isLoggedIn: true, // Set to true here
+      isLoggedIn: true,
       isLoading: false,
       error: null,
-      isPackageActive: user.status === 'active', // Derived from user.status
+      // --- THE CORRECT CHECK IS HERE ---
+      // This checks the status of the user's package, which is 'active' for both paid and trial users.
+      isPackageActive: user.user_package?.status === 'active',
     });
   },
 
-  setUserData: (user) => { // This action is called from DashboardPage after fetching data
+  setUserData: (user) => {
     set({
       user,
-      isLoggedIn: true, // Always true when setting user data
-      isPackageActive: user.status === 'active', // Update active status
+      isLoggedIn: true,
+      // --- THE CORRECT CHECK IS HERE ---
+      // This checks the status of the user's package, which is 'active' for both paid and trial users.
+      isPackageActive: user.user_package?.status === 'active',
     });
   },
 
   clearAuth: () => {
-    localStorage.removeItem('authToken'); // Remove token
+    localStorage.removeItem('authToken');
     set({ token: null, user: null, isLoggedIn: false, isLoading: false, error: null, isPackageActive: false });
   },
 
@@ -75,6 +77,3 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 }));
-
-// IMPORTANT: Ensure 'useAuthStore.getState().initializeAuth();' is NOT at the very bottom of this file.
-// It should only be called once in your App.tsx's useEffect.
