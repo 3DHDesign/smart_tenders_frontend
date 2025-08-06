@@ -173,6 +173,7 @@ export default function Navbar() {
             <div className="flex flex-col gap-2">
               <NavLink
                 to="/register"
+                id="nav-register-link"
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
                   `block w-full text-center py-2 px-3 rounded-md text-base font-semibold transition-colors duration-300
@@ -187,6 +188,7 @@ export default function Navbar() {
               </NavLink>
               <NavLink
                 to="/login"
+                id="nav-login-link"
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
                   `block w-full text-center py-2 px-3 rounded-md text-base font-semibold transition-colors duration-300
