@@ -76,6 +76,7 @@ export default function Navbar() {
               <>
                 <NavLink
                   to="/register"
+                   id="nav-register-link"
                   className={({ isActive }) =>
                     `px-4 py-2 rounded-md transition-all duration-300 text-sm font-semibold
                      ${
@@ -91,6 +92,7 @@ export default function Navbar() {
                 </NavLink>
                 <NavLink
                   to="/login"
+                   id="nav-login-link"
                   className={({ isActive }) =>
                     `px-4 py-2 rounded-md transition-colors duration-300 text-sm font-semibold
                      ${
