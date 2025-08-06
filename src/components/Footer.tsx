@@ -37,7 +37,7 @@ const Footer: React.FC = () => {
      {/* About Section: Updated with static content */}
      <div>
       <h3 className="text-2xl font-extrabold font-heading tracking-wide mb-4">
-       ABOUT TENDER NOTICES
+       ABOUT SMART TENDERS
       </h3>
       <p className="text-base leading-relaxed mb-6 text-gray-200">
        SmartTenders.lk is a leading platform in Sri Lanka, centralizing all government and private tender notices to help you find and act on new opportunities efficiently.

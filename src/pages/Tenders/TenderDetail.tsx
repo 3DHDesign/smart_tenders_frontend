@@ -56,6 +56,9 @@ const TenderDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('isLoggedIn:', isLoggedIn);
+    console.log('isPackageActive:', isPackageActive);
+    console.log('authLoading:', authLoading);
     if (authLoading) {
       setLoading(true);
       return;

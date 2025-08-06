@@ -5,25 +5,25 @@ const howItWorksSteps = [
   {
     image: '/images/h-i-w-1.png', // Ensure this path is correct in your public/images folder
     title: 'Register Account',
-    description: 'Create your SmartTenders account to begin your journey.',
+    description: ' ',
     stepNumber: '01',
   },
   {
     image: '/images/h-i-w-2.png', // Ensure this path is correct
     title: 'Complete Profile',
-    description: 'Update your company profile to match with relevant tenders.',
+    description: '',
     stepNumber: '02',
   },
   {
     image: '/images/h-i-w-3.png', // Ensure this path is correct
     title: 'Search Tenders',
-    description: 'Discover thousands of active tenders using advanced filters.',
+    description: '',
     stepNumber: '03',
   },
   {
     image: '/images/h-i-w-4.png', // Ensure this path is correct
     title: 'Apply For Tender',
-    description: 'Submit your bids securely and track your application status.',
+    description: '',
     stepNumber: '04',
   },
 ];

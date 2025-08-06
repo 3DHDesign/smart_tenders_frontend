@@ -1,7 +1,7 @@
 // src/stores/authStore.ts
-import { create } from 'zustand';
-import { getDashboardData, type UserDetails } from '../services/userService';
-import { toast } from 'react-toastify';
+import { create } from "zustand";
+import { getDashboardData, type UserDetails } from "../services/userService";
+import { toast } from "react-toastify";
 
 interface AuthState {
   token: string | null;
@@ -28,16 +28,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isPackageActive: false,
 
   setAuth: (token, user) => {
-    localStorage.setItem('authToken', token);
+    // Inside the setAuth function
+    console.log("--- setAuth debug ---");
+    console.log("Received user object:", user);
+    console.log("User package status is:", user?.user_package?.status);
+    console.log("---------------------");
+    localStorage.setItem("authToken", token);
     set({
       token,
       user,
       isLoggedIn: true,
       isLoading: false,
       error: null,
-      // --- THE CORRECT CHECK IS HERE ---
-      // This checks the status of the user's package, which is 'active' for both paid and trial users.
-      isPackageActive: user.user_package?.status === 'active',
+      // --- FINAL CORRECT CHECK: Check the package's status ---
+      isPackageActive: user.user_package?.package?.status === "active",
     });
   },
 
@@ -45,29 +49,40 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({
       user,
       isLoggedIn: true,
-      // --- THE CORRECT CHECK IS HERE ---
-      // This checks the status of the user's package, which is 'active' for both paid and trial users.
-      isPackageActive: user.user_package?.status === 'active',
+      // --- FINAL CORRECT CHECK: Check the package's status ---
+      isPackageActive: user.user_package?.package?.status === "active",
     });
   },
 
   clearAuth: () => {
-    localStorage.removeItem('authToken');
-    set({ token: null, user: null, isLoggedIn: false, isLoading: false, error: null, isPackageActive: false });
+    localStorage.removeItem("authToken");
+    set({
+      token: null,
+      user: null,
+      isLoggedIn: false,
+      isLoading: false,
+      error: null,
+      isPackageActive: false,
+    });
   },
 
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error }),
 
   initializeAuth: async () => {
-    const storedToken = localStorage.getItem('authToken');
+    const storedToken = localStorage.getItem("authToken");
     if (storedToken) {
       try {
         const userData = await getDashboardData();
         get().setAuth(storedToken, userData);
       } catch (err) {
-        console.error("Failed to re-authenticate or fetch user data on app load:", err);
-        toast.error("Session expired or invalid. Please log in again.", { autoClose: 5000 });
+        console.error(
+          "Failed to re-authenticate or fetch user data on app load:",
+          err
+        );
+        toast.error("Session expired or invalid. Please log in again.", {
+          autoClose: 5000,
+        });
         get().clearAuth();
       } finally {
         get().setLoading(false);
