@@ -50,15 +50,13 @@ export default function Hero() {
 
   const activeSlide = slides[activeIndex];
 
-  const { headline, highlight } = useMemo(() => {
-    if (!activeSlide?.title) return { headline: "", highlight: "" };
-    const words = activeSlide.title.split(" ");
-    if (words.length > 1) {
-      const lastWord = words.pop()!;
-      return { headline: words.join(" "), highlight: lastWord };
-    }
-    return { headline: "", highlight: activeSlide.title };
+  const headlineHtml = useMemo(() => {
+    return activeSlide?.title || "";
   }, [activeSlide?.title]);
+
+  const introHtml = useMemo(() => {
+    return activeSlide?.intro || "";
+  }, [activeSlide?.intro]);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -78,6 +76,16 @@ export default function Hero() {
 
     return () => clearTimeout(timeout);
   }, [query]);
+  
+  useEffect(() => {
+    const handleClickOutside = () => {
+        if (showDropdown) {
+            setShowDropdown(false);
+        }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDropdown]);
 
   return (
     <section className="wide-container relative min-h-[90vh] text-white flex items-center overflow-hidden px-4 sm:px-0">
@@ -122,11 +130,9 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -50 }}
               transition={{ duration: 0.8 }}
-              className="text-2xl sm:text-4xl md:text-5xl font-extrabold leading-snug sm:leading-tight mb-4 font-heading break-words"
-            >
-              <span className="text-white">{headline}</span>{" "}
-              <span className="text-[var(--color-primary)]">{highlight}</span>
-            </motion.h1>
+              className="text-2xl sm:text-4xl md:text-5xl font-extrabold leading-snug sm:leading-tight mb-4 font-heading break-words "
+              dangerouslySetInnerHTML={{ __html: headlineHtml }}
+            ></motion.h1>
 
             <motion.p
               key={`p-${activeSlide.id}`}
@@ -135,9 +141,8 @@ export default function Hero() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.8, delay: 0.1 }}
               className="text-sm sm:text-lg text-white/90 mb-6 sm:mb-8 font-body leading-snug"
-            >
-              {activeSlide.intro}
-            </motion.p>
+              dangerouslySetInnerHTML={{ __html: introHtml }}
+            ></motion.p>
 
             {/* 🔍 Search Bar */}
             <div className="relative w-full max-w-2xl">
