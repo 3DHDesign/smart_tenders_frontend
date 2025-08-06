@@ -5,12 +5,9 @@ import ContactDetailsStep from "./steps/ContactDetailsStep";
 import TenderPreferencesStep from "./steps/TenderPreferencesStep";
 import PackageSelectionStep from "./steps/PackageSelectionStep";
 import Button from "../shared/Button";
-// --- CRITICAL FIX: Explicitly import RegisterRequest as a type ---
 import { authService, type RegisterRequest } from '../../services/authService';
-import axios from 'axios'; // Import axios for type guarding in catch blocks
+import axios from 'axios';
 
-// This interface defines the shape of the form data collected across all steps.
-// This is already correctly defined here and exported.
 export interface RegistrationFormData {
   email: string;
   password: string;
@@ -81,8 +78,9 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
         }
         break;
       case 2: {
-        const hasEmptyDynamicEmail = formData.dynamicEmails.some(email => email.address.trim() === "");
-        const hasInvalidDynamicEmail = formData.dynamicEmails.some(email => email.error !== null);
+        const hasInvalidDynamicEmail = formData.dynamicEmails.some(
+          (email) => email.address.trim() !== "" && email.error !== null
+        );
 
         if (
           !formData.fullName.trim() ||
@@ -94,9 +92,9 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
           return;
         }
 
-        if (hasEmptyDynamicEmail || hasInvalidDynamicEmail) {
-            setError("Step 2: Please ensure all notification email addresses are valid and filled.");
-            return;
+        if (hasInvalidDynamicEmail) {
+          setError("Step 2: Please ensure all entered email addresses are valid.");
+          return;
         }
 
         if (formData.country === "Sri Lanka" && (!formData.province.trim() || !formData.city.trim())) {
@@ -152,7 +150,6 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
 
     setIsLoading(true);
     try {
-      // --- CRITICAL FIX: Use the imported RegisterRequest type directly ---
       const payloadToSend: RegisterRequest = {
         email: formData.email,
         password: formData.password,
@@ -166,7 +163,7 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
         categories: formData.selectedCategories,
         package_id: formData.selectedPackage,
         payment_method: formData.paymentMethod,
-        emails: formData.dynamicEmails.map(e => e.address),
+        emails: formData.dynamicEmails.map(e => e.address).filter(e => e.trim() !== ''),
       };
 
       if (formData.address2) {
@@ -233,7 +230,6 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
 
   return (
     <div className="bg-white rounded-xl shadow-xl p-8 md:p-10 lg:p-12 border border-gray-100 max-w-md mx-auto my-8">
-      {/* Progress Indicator */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-semibold text-gray-600">
@@ -253,19 +249,13 @@ const MultiStepRegisterForm: React.FC<MultiStepRegisterFormProps> = ({ onRegistr
           ></div>
         </div>
       </div>
-
-      {/* General Error Display (for errors not tied to a specific field) */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
           <strong className="font-bold">Error!</strong>
           <span className="block sm:inline"> {error}</span>
         </div>
       )}
-
-      {/* Render the current step's form content */}
       {renderStep()}
-
-      {/* Navigation Buttons */}
       <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
         {currentStep > 1 && (
           <Button

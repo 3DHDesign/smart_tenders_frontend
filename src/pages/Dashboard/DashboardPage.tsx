@@ -65,11 +65,13 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-screen-xl mx-auto p-4 sm:p-6 lg:p-8 space-y-10">
-      <PageBanner
+    <>
+     <PageBanner
         title={`Hello, ${user.name}!`} 
         backgroundImage="/images/download.png"
       />
+     <div className="max-w-screen-xl mx-auto p-4 sm:p-6 lg:p-8 space-y-10">
+     
 
       {/* Profile & Package Section */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-center gap-6 md:gap-8 border border-gray-100">
@@ -194,6 +196,8 @@ const DashboardPage: React.FC = () => {
         )}
       </div>
     </div>
+    </>
+   
   );
 };
 

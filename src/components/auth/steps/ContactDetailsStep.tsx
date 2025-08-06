@@ -1,9 +1,8 @@
- // auth/steps/ContactDetailsStep.tsx
-import React, { useState } from 'react'; // Import useState for local component state
-import { FiUser, FiPhone, FiMapPin, FiMail, FiPlus, FiMinus } from 'react-icons/fi'; // Icons for fields
-import type { RegistrationFormData } from '../MultiStepRegisterForm'; // Import the main form data type for type safety
+// auth/steps/ContactDetailsStep.tsx
+import React, { useState } from 'react';
+import { FiUser, FiPhone, FiMapPin, FiMail, FiPlus, FiMinus } from 'react-icons/fi';
+import type { RegistrationFormData } from '../MultiStepRegisterForm';
 
-// Data for Sri Lankan Provinces and Districts (unchanged - this is your existing data)
 const sriLankanLocations = [
   {
     province: "Western Province",
@@ -45,7 +44,7 @@ const sriLankanLocations = [
   {
     province: "North Central Province",
     districts: [
-      { name: "Anuradhapura" }, { name: "Polonnawela" } // Corrected typo: Polonnawela
+      { name: "Anuradhapura" }, { name: "Polonnawela" }
     ].sort((a, b) => a.name.localeCompare(b.name)),
   },
   {
@@ -62,7 +61,6 @@ const sriLankanLocations = [
   },
 ];
 
-// Hardcoded list of common countries (unchanged - your existing data)
 const mockCountryOptions = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
   "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas",
@@ -100,7 +98,6 @@ const mockCountryOptions = [
   "Zambia", "Zimbabwe"
 ].sort();
 
-// Update StepProps to use the imported RegistrationFormData type for strong typing
 interface StepProps {
   formData: RegistrationFormData;
   updateFormData: (newData: Partial<RegistrationFormData>) => void;
@@ -110,7 +107,6 @@ const ContactDetailsStep: React.FC<StepProps> = ({
   formData,
   updateFormData,
 }) => {
-  // Local state for validation errors for each input field
   const [fullNameError, setFullNameError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [address1Error, setAddress1Error] = useState<string | null>(null);
@@ -118,13 +114,10 @@ const ContactDetailsStep: React.FC<StepProps> = ({
   const [provinceError, setProvinceError] = useState<string | null>(null);
   const [cityError, setCityError] = useState<string | null>(null);
 
-  // Helper function to get districts based on selected province
   const getDistrictsForProvince = (provinceName: string) => {
     const province = sriLankanLocations.find(p => p.province === provinceName);
     return province ? province.districts : [];
   };
-
-  // --- Validation Functions for each field ---
 
   const validateFullName = (name: string): string | null => {
     if (name.trim().length === 0) {
@@ -137,12 +130,10 @@ const ContactDetailsStep: React.FC<StepProps> = ({
     if (phone.trim().length === 0) {
       return "Phone Number is required.";
     }
-    // Regex to allow only digits (no letters or special characters)
     if (!/^\d+$/.test(phone)) {
       return "Phone Number can only contain digits.";
     }
-    // Basic length check (e.g., 10 digits for most mobile numbers in Sri Lanka)
-    if (phone.length !== 10) { // Adjust this length based on your specific requirements/country
+    if (phone.length !== 10) {
       return "Phone Number must be 10 digits long.";
     }
     return null;
@@ -163,7 +154,6 @@ const ContactDetailsStep: React.FC<StepProps> = ({
   };
 
   const validateProvince = (province: string, country: string): string | null => {
-    // Province is only required if the selected country is "Sri Lanka"
     if (country === "Sri Lanka" && province.trim().length === 0) {
       return "Province is required for Sri Lanka.";
     }
@@ -171,7 +161,6 @@ const ContactDetailsStep: React.FC<StepProps> = ({
   };
 
   const validateCity = (city: string, province: string, country: string): string | null => {
-    // City/District is only required if the selected country is "Sri Lanka" AND a province is selected
     if (country === "Sri Lanka" && province.trim().length > 0 && city.trim().length === 0) {
       return "District/City is required for Sri Lanka.";
     }
@@ -180,87 +169,81 @@ const ContactDetailsStep: React.FC<StepProps> = ({
 
   const validateDynamicEmail = (email: string): string | null => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email.trim().length === 0) {
-      return "Email address is required.";
-    } else if (!emailRegex.test(email)) {
+    if (email.trim().length > 0 && !emailRegex.test(email)) {
       return "Please enter a valid email address.";
     }
     return null;
   };
 
-  // --- Input Change and Blur Handlers for each field ---
-
   const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    updateFormData({ fullName: value }); // Update global form data
-    setFullNameError(validateFullName(value)); // Validate and set local error state
+    updateFormData({ fullName: value });
+    setFullNameError(validateFullName(value));
   };
 
   const handleFullNameBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    setFullNameError(validateFullName(e.target.value)); // Validate on blur
+    setFullNameError(validateFullName(e.target.value));
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ''); // Filter out non-digits immediately
-    updateFormData({ phone: value }); // Update global form data
-    setPhoneError(validatePhone(value)); // Validate and set local error state
+    const value = e.target.value.replace(/\D/g, '');
+    updateFormData({ phone: value });
+    setPhoneError(validatePhone(value));
   };
 
   const handlePhoneBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    setPhoneError(validatePhone(e.target.value)); // Validate on blur
+    setPhoneError(validatePhone(e.target.value));
   };
 
   const handleAddress1Change = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    updateFormData({ address1: value }); // Update global form data
-    setAddress1Error(validateAddress1(value)); // Validate and set local error state
+    updateFormData({ address1: value });
+    setAddress1Error(validateAddress1(value));
   };
 
   const handleAddress1Blur = (e: React.FocusEvent<HTMLInputElement>) => {
-    setAddress1Error(validateAddress1(e.target.value)); // Validate on blur
+    setAddress1Error(validateAddress1(e.target.value));
   };
 
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCountry = e.target.value;
     updateFormData({
       country: newCountry,
-      province: "", // Reset province when country changes
-      city: "",     // Reset city when country changes
+      province: "",
+      city: "",
     });
-    setCountryError(validateCountry(newCountry)); // Validate country
-    setProvinceError(null); // Clear province error as it might become irrelevant
-    setCityError(null);     // Clear city error as it might become irrelevant
+    setCountryError(validateCountry(newCountry));
+    setProvinceError(null);
+    setCityError(null);
   };
 
   const handleCountryBlur = (e: React.FocusEvent<HTMLSelectElement>) => {
-    setCountryError(validateCountry(e.target.value)); // Validate on blur
+    setCountryError(validateCountry(e.target.value));
   };
 
   const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newProvince = e.target.value;
-    updateFormData({ province: newProvince, city: "" }); // Reset city when province changes
-    setProvinceError(validateProvince(newProvince, formData.country)); // Validate province
-    setCityError(null); // Clear city error on province change
+    updateFormData({ province: newProvince, city: "" });
+    setProvinceError(validateProvince(newProvince, formData.country));
+    setCityError(null);
   };
 
   const handleProvinceBlur = (e: React.FocusEvent<HTMLSelectElement>) => {
-    setProvinceError(validateProvince(e.target.value, formData.country)); // Validate on blur
+    setProvinceError(validateProvince(e.target.value, formData.country));
   };
 
   const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCity = e.target.value;
-    updateFormData({ city: newCity }); // Update global form data
-    setCityError(validateCity(newCity, formData.province, formData.country)); // Validate city
+    updateFormData({ city: newCity });
+    setCityError(validateCity(newCity, formData.province, formData.country));
   };
 
   const handleCityBlur = (e: React.FocusEvent<HTMLSelectElement>) => {
-    setCityError(validateCity(e.target.value, formData.province, formData.country)); // Validate on blur
+    setCityError(validateCity(e.target.value, formData.province, formData.country));
   };
 
-  // --- Dynamic Email Handlers ---
   const handleDynamicEmailChange = (id: number, newAddress: string) => {
     const updatedEmails = formData.dynamicEmails.map((email) =>
-      // Update the address and immediately validate, storing the error directly on the email object
       email.id === id ? { ...email, address: newAddress, error: validateDynamicEmail(newAddress) } : email
     );
     updateFormData({ dynamicEmails: updatedEmails });
@@ -268,14 +251,12 @@ const ContactDetailsStep: React.FC<StepProps> = ({
 
   const handleDynamicEmailBlur = (id: number, address: string) => {
     const updatedEmails = formData.dynamicEmails.map((email) =>
-      // Validate on blur, storing the error directly on the email object
       email.id === id ? { ...email, error: validateDynamicEmail(address) } : email
     );
     updateFormData({ dynamicEmails: updatedEmails });
   };
 
   const addDynamicEmail = () => {
-    // Calculate a new unique ID for the email
     const newId =
       formData.dynamicEmails.length > 0
         ? Math.max(...formData.dynamicEmails.map((e) => e.id)) + 1
@@ -283,7 +264,7 @@ const ContactDetailsStep: React.FC<StepProps> = ({
     updateFormData({
       dynamicEmails: [
         ...formData.dynamicEmails,
-        { id: newId, address: "", editable: true, error: null }, // Initialize new email with no error
+        { id: newId, address: "", editable: true, error: null },
       ],
     });
   };
@@ -302,7 +283,6 @@ const ContactDetailsStep: React.FC<StepProps> = ({
         Contact & Email Settings
       </h2>
       <div className="space-y-5">
-        {/* Full Name Field */}
         <div>
           <label htmlFor="fullName" className="sr-only">
             Full Name
@@ -318,11 +298,11 @@ const ContactDetailsStep: React.FC<StepProps> = ({
               name="fullName"
               placeholder="Full Name"
               value={formData.fullName}
-              onChange={handleFullNameChange} // Call handler on change
-              onBlur={handleFullNameBlur}     // Call handler on blur
+              onChange={handleFullNameChange}
+              onBlur={handleFullNameBlur}
               className={`w-full p-3 pl-12 border rounded-lg focus:outline-none focus:ring-2 font-body text-gray-700
                 ${
-                  fullNameError // Apply red border if there's an error
+                  fullNameError
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-300 focus:ring-[var(--color-primary)]"
                 }
@@ -330,12 +310,11 @@ const ContactDetailsStep: React.FC<StepProps> = ({
               required
             />
           </div>
-          {fullNameError && ( // Display error message
+          {fullNameError && (
             <p className="text-red-500 text-sm mt-1">{fullNameError}</p>
           )}
         </div>
 
-        {/* Phone Number Field */}
         <div>
           <label htmlFor="phone" className="sr-only">
             Phone Number
@@ -346,16 +325,16 @@ const ContactDetailsStep: React.FC<StepProps> = ({
               size={20}
             />
             <input
-              type="tel" // Use tel type for phone numbers (keyboard hint for mobile)
+              type="tel"
               id="phone"
               name="phone"
               placeholder="Phone Number (e.g., 07XXXXXXXX)"
               value={formData.phone}
-              onChange={handlePhoneChange} // Call handler on change
-              onBlur={handlePhoneBlur}     // Call handler on blur
+              onChange={handlePhoneChange}
+              onBlur={handlePhoneBlur}
               className={`w-full p-3 pl-12 border rounded-lg focus:outline-none focus:ring-2 font-body text-gray-700
                 ${
-                  phoneError // Apply red border if there's an error
+                  phoneError
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-300 focus:ring-[var(--color-primary)]"
                 }
@@ -363,12 +342,11 @@ const ContactDetailsStep: React.FC<StepProps> = ({
               required
             />
           </div>
-          {phoneError && ( // Display error message
+          {phoneError && (
             <p className="text-red-500 text-sm mt-1">{phoneError}</p>
           )}
         </div>
 
-        {/* Address 1 Field */}
         <div>
           <label htmlFor="address1" className="sr-only">
             Address Line 1
@@ -384,11 +362,11 @@ const ContactDetailsStep: React.FC<StepProps> = ({
               name="address1"
               placeholder="Address Line 1"
               value={formData.address1}
-              onChange={handleAddress1Change} // Call handler on change
-              onBlur={handleAddress1Blur}     // Call handler on blur
+              onChange={handleAddress1Change}
+              onBlur={handleAddress1Blur}
               className={`w-full p-3 pl-12 border rounded-lg focus:outline-none focus:ring-2 font-body text-gray-700
                 ${
-                  address1Error // Apply red border if there's an error
+                  address1Error
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-300 focus:ring-[var(--color-primary)]"
                 }
@@ -396,12 +374,11 @@ const ContactDetailsStep: React.FC<StepProps> = ({
               required
             />
           </div>
-          {address1Error && ( // Display error message
+          {address1Error && (
             <p className="text-red-500 text-sm mt-1">{address1Error}</p>
           )}
         </div>
 
-        {/* Address 2 (Optional - no validation added unless specified) */}
         <div>
           <label htmlFor="address2" className="sr-only">
             Address Line 2 (Optional)
@@ -423,7 +400,6 @@ const ContactDetailsStep: React.FC<StepProps> = ({
           </div>
         </div>
 
-        {/* Country Select Field */}
         <div>
           <label htmlFor="country" className="sr-only">
             Country
@@ -437,11 +413,11 @@ const ContactDetailsStep: React.FC<StepProps> = ({
               id="country"
               name="country"
               value={formData.country}
-              onChange={handleCountryChange} // Call handler on change
-              onBlur={handleCountryBlur}     // Call handler on blur
+              onChange={handleCountryChange}
+              onBlur={handleCountryBlur}
               className={`w-full p-3 pl-12 border rounded-lg bg-white focus:outline-none focus:ring-2 font-body text-gray-700 appearance-none
                 ${
-                  countryError // Apply red border if there's an error
+                  countryError
                     ? "border-red-500 focus:ring-red-500"
                     : "border-gray-300 focus:ring-[var(--color-primary)]"
                 }
@@ -455,17 +431,15 @@ const ContactDetailsStep: React.FC<StepProps> = ({
                 </option>
               ))}
             </select>
-            {/* Custom SVG for dropdown arrow */}
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
             </div>
           </div>
-          {countryError && ( // Display error message
+          {countryError && (
             <p className="text-red-500 text-sm mt-1">{countryError}</p>
           )}
         </div>
 
-        {/* State (Province) Select Field - Only for Sri Lanka */}
         {formData.country === "Sri Lanka" && (
           <div>
             <label htmlFor="province" className="sr-only">
@@ -480,11 +454,11 @@ const ContactDetailsStep: React.FC<StepProps> = ({
                 id="province"
                 name="province"
                 value={formData.province}
-                onChange={handleProvinceChange} // Call handler on change
-                onBlur={handleProvinceBlur}     // Call handler on blur
+                onChange={handleProvinceChange}
+                onBlur={handleProvinceBlur}
                 className={`w-full p-3 pl-12 border rounded-lg bg-white focus:outline-none focus:ring-2 font-body text-gray-700 appearance-none
                   ${
-                    provinceError // Apply red border if there's an error
+                    provinceError
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-[var(--color-primary)]"
                   }
@@ -498,18 +472,16 @@ const ContactDetailsStep: React.FC<StepProps> = ({
                   </option>
                 ))}
               </select>
-              {/* Custom SVG for dropdown arrow */}
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
               </div>
             </div>
-            {provinceError && ( // Display error message
+            {provinceError && (
               <p className="text-red-500 text-sm mt-1">{provinceError}</p>
             )}
           </div>
         )}
 
-        {/* City (District) Select Field - Only for Sri Lanka */}
         {formData.country === "Sri Lanka" && (
           <div>
             <label htmlFor="city" className="sr-only">
@@ -524,17 +496,17 @@ const ContactDetailsStep: React.FC<StepProps> = ({
                 id="city"
                 name="city"
                 value={formData.city}
-                onChange={handleCityChange} // Call handler on change
-                onBlur={handleCityBlur}     // Call handler on blur
+                onChange={handleCityChange}
+                onBlur={handleCityBlur}
                 className={`w-full p-3 pl-12 border rounded-lg bg-white focus:outline-none focus:ring-2 font-body text-gray-700 appearance-none
                   ${
-                    cityError // Apply red border if there's an error
+                    cityError
                       ? "border-red-500 focus:ring-red-500"
                       : "border-gray-300 focus:ring-[var(--color-primary)]"
                   }
                 `}
                 required
-                disabled={!formData.province} // Disable if no province selected
+                disabled={!formData.province}
               >
                 <option value="">Select District</option>
                 {formData.province &&
@@ -544,66 +516,63 @@ const ContactDetailsStep: React.FC<StepProps> = ({
                     </option>
                   ))}
               </select>
-              {/* Custom SVG for dropdown arrow */}
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
               </div>
             </div>
-            {cityError && ( // Display error message
+            {cityError && (
               <p className="text-red-500 text-sm mt-1">{cityError}</p>
             )}
           </div>
         )}
 
-        {/* Dynamic Email Fields Section */}
         <div className="pt-4 border-t border-gray-100">
           <h3 className="text-lg font-semibold font-heading text-[var(--color-dark)] mb-3">
             Notification Emails
           </h3>
           {formData.dynamicEmails.map((email, index: number) => (
-            <div key={email.id} className="flex items-center gap-2 mb-3">
-              <FiMail className="text-[var(--color-primary)]" size={20} />
-              <input
-                type="email"
-                placeholder={`Email Address ${index + 1}`}
-                value={email.address}
-                onChange={(e) => handleDynamicEmailChange(email.id, e.target.value)}
-                onBlur={(e) => handleDynamicEmailBlur(email.id, e.target.value)}
-                className={`flex-grow p-3 border rounded-lg focus:outline-none focus:ring-2 font-body text-gray-700
-                  ${
-                    email.error // Apply red border if this specific dynamic email has an error
-                      ? "border-red-500 focus:ring-red-500"
-                      : "border-gray-300 focus:ring-[var(--color-primary)]"
-                  }
-                `}
-                required={email.editable} // Required if editable (initial two are required)
-                disabled={!email.editable} // Disable if not editable
-              />
-              {/* Show remove button only if email is editable and there are more than 2 emails */}
-              {email.editable && formData.dynamicEmails.length > 2 && (
-                <button
-                  type="button"
-                  onClick={() => removeDynamicEmail(email.id)}
-                  className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
-                >
-                  <FiMinus size={16} />
-                </button>
-              )}
-            </div>
-          ))}
-          {/* Display errors for dynamic emails (each error below its respective input) */}
-          {formData.dynamicEmails.map((email) => email.error && (
-            <p key={`dynamic-email-error-${email.id}`} className="text-red-500 text-sm mt-1 ml-6">
-              {email.error}
-            </p>
-          ))}
-          <button
-            type="button"
-            onClick={addDynamicEmail}
-            className="flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 font-semibold text-sm mt-3"
-          >
-            <FiPlus size={16} /> Add Another Email
-          </button>
+  <div key={email.id} className="flex items-center gap-2 mb-3">
+    <FiMail className="text-[var(--color-primary)]" size={20} />
+    <input
+      type="email"
+      placeholder={`Email Address ${index + 1} (Optional)`}
+      value={email.address}
+      onChange={(e) => handleDynamicEmailChange(email.id, e.target.value)}
+      onBlur={(e) => handleDynamicEmailBlur(email.id, e.target.value)}
+      className={`flex-grow p-3 border rounded-lg focus:outline-none focus:ring-2 font-body text-gray-700
+        ${
+          email.error
+            ? "border-red-500 focus:ring-red-500"
+            : "border-gray-300 focus:ring-[var(--color-primary)]"
+        }
+      `}
+      disabled={!email.editable}
+    />
+    {/* Corrected: Show remove button only if there are MORE THAN 2 emails. */}
+    {formData.dynamicEmails.length > 2 && (
+      <button
+        type="button"
+        onClick={() => removeDynamicEmail(email.id)}
+        className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors"
+      >
+        <FiMinus size={16} />
+      </button>
+    )}
+  </div>
+))}
+{/* Display errors for dynamic emails (each error below its respective input) */}
+{formData.dynamicEmails.map((email) => email.error && (
+  <p key={`dynamic-email-error-${email.id}`} className="text-red-500 text-sm mt-1 ml-6">
+    {email.error}
+  </p>
+))}
+<button
+  type="button"
+  onClick={addDynamicEmail}
+  className="flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 font-semibold text-sm mt-3"
+>
+  <FiPlus size={16} /> Add Another Email
+</button>
         </div>
       </div>
     </div>
