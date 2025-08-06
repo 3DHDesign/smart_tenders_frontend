@@ -55,15 +55,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 <div className="flex flex-grow">
   {/* Sidebar */}
   <aside
-    className={`
-      fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-xl flex-shrink-0 border-r border-gray-200 p-4
-      transform transition-transform duration-300 ease-in-out
-      md:relative md:translate-x-0 md:flex md:flex-col
-      ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-    `}
-    // push content below BOTH the main header (mobile) + the dashboard bar height (~56px)
-    
-  >
+  className={`
+    fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-xl flex-shrink-0 border-r border-gray-200 p-4
+    transform transition-transform duration-300 ease-in-out
+    md:relative md:translate-x-0 md:flex md:flex-col
+    ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+
+    pt-[calc(var(--app-header-h-mobile,64px)+56px)]  /* ✅ mobile only padding */
+    md:pt-4                                         /* ✅ smaller on desktop */
+  `}
+>
+
     {/* Desktop brand (kept), add a bit of margin to clear site header on desktop if needed */}
     <Link
       to="/dashboard"
@@ -121,7 +123,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   {/* Main content area */}
   <main
-  className="flex-grow bg-gray-100 overflow-y-auto pt-[calc(var(--app-header-h-mobile,6px)+56px)] md:pt-[10px]"
+  className="flex-grow bg-gray-100 overflow-y-auto pt-[calc(var(--app-header-h-mobile,px)+56px)] md:pt-[10px]"
 >
   {children}
 </main>

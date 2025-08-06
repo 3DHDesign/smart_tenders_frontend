@@ -25,13 +25,17 @@ const PrivacyPolicy: React.FC = () => {
   if (!content) return <div className="p-8 text-center">Privacy Policy not found.</div>;
 
   return (
-    <div className="wide-container mx-auto py-12">
+    <>
+    <div className="bg-black/50 h-[60px] sm:h-[100px]"></div>
+      <div className="wide-container mx-auto py-12">
       <h1 className="text-3xl font-bold mb-6">{content.title}</h1>
       <div
         className="prose max-w-none"
         dangerouslySetInnerHTML={{ __html: content.description }}
       />
     </div>
+    </>
+  
   );
 };
 

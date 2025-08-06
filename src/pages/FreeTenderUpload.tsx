@@ -97,6 +97,8 @@ const FreeTenderUpload: React.FC = () => {
   };
 
   return (
+    <>
+    <div className="bg-black/50 h-[60px] sm:h-[100px]"></div>
     <div className="wide-container mx-auto py-12">
       <h1 className="text-3xl font-bold text-[var(--color-dark)] mb-6">
         Upload Your Tender Free
@@ -195,6 +197,8 @@ const FreeTenderUpload: React.FC = () => {
         />
       </form>
     </div>
+    </>
+    
   );
 };
 
