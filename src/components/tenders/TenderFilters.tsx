@@ -97,7 +97,7 @@ const TenderFilters: React.FC = () => {
             <input
               id="keyword"
               type="text"
-              placeholder="e.g., Construction, IT"
+              placeholder="e.g., Type your keyword"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition duration-200"

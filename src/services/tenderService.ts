@@ -17,6 +17,7 @@ export interface Tender {
   intro: string | null;
   keywords: string;
   document_url: string | null;
+  type: 'Tender' | 'Amendment' | 'Cancellation'; 
   categories?: { id: number; name: string; }[]; // Ensure categories is part of Tender interface
   papers?: { id: number; name: string; }[]; // Ensure papers is part of Tender interface
   files?: { id: number; tender_id: string; title: string; type: string; file: string; extension: string | null; created_at: string; updated_at: string; }[]; // And files

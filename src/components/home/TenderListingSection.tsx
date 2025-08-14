@@ -2,26 +2,29 @@
 import React, { useEffect, useMemo } from "react";
 import { useTenderStore } from "../../stores/useTenderStore";
 import Button from "../shared/Button";
-import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { type Tender } from "../../services/tenderService";
 import { useAuthStore } from "../../stores/authStore";
 
 const TenderListingSection: React.FC = () => {
-  const { list, loading, fetchPage, counts } = useTenderStore();
-  const navigate = useNavigate(); // Initialize useNavigate hook
+  // 🟢 Make sure to destructure resetFilters from the store
+  const { list, loading, fetchPage, counts, resetFilters } = useTenderStore();
+  const navigate = useNavigate();
   const { isLoggedIn, user } = useAuthStore();
   const canViewSensitiveFields = isLoggedIn && (user?.status === "active" || user?.status === "pending");
 
   // Fetch all tenders on first mount.
   useEffect(() => {
     if (typeof fetchPage === "function") {
+      // 🟢 This is the fix to automatically reset filters on the home page.
+      resetFilters();
       fetchPage(1, true);
     } else {
       console.error(
         "useTenderStore.fetchPage is not a function. Check useTenderStore.ts definition."
       );
     }
-  }, [fetchPage]);
+  }, [fetchPage, resetFilters]);
 
   // Derived list for limited display on home page: strictly latest 5, no filtering based on tabs.
   const latestTendersForHomePage = useMemo(() => {
@@ -54,15 +57,14 @@ const TenderListingSection: React.FC = () => {
     return "text-gray-700";
   };
 
-  // --- NEW: Handle navigation to Tender Detail page ---
+  // --- Handle navigation to Tender Detail page ---
   const handleViewNoticeClick = (tenderId: number) => {
-    navigate(`/tenders/${tenderId}`); // Navigate to the detail page with the tender ID
+    navigate(`/tenders/${tenderId}`);
   };
 
   return (
     <section className="bg-gray-50 py-8 sm:py-10 lg:py-12 wide-container">
       <div className="container mx-auto">
-        {/* ----- Top counts bar (DISPLAY ONLY, NOT CLICKABLE) ----- */}
         <div className="grid grid-cols-2 sm:grid-cols-4 bg-white rounded-lg shadow-md mb-8 border border-gray-100 overflow-hidden">
           {(["all", "today", "live", "closed"] as const).map((key) => {
             const count =
@@ -97,27 +99,23 @@ const TenderListingSection: React.FC = () => {
           })}
         </div>
 
-        {/* ----- Columns: CTA + Main List ----- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* === LEFT SIDEBAR CTA === */}
           <aside className="lg:col-span-1 space-y-6">
-            {/* CTA */}
             <div className="bg-[var(--color-dark)] text-white p-6 rounded-lg text-center shadow-md">
               <p className="text-lg font-semibold font-body mb-3">
                 To be connected with Buyers & Suppliers
               </p>
-              <h3 className="text-2xl font-bold  font-heading mb-4">
+              <h3 className="text-2xl font-bold font-heading mb-4">
                 Upload Your Tenders&nbsp;FREE
               </h3>
               <Button
                 label="Upload Tenders Now"
-                className="w-full bg-[var(--color-primary)]  text-center hover:bg-[var(--color-primary)]/80"
+                className="w-full bg-[var(--color-primary)] text-center hover:bg-[var(--color-primary)]/80"
                 onClick={() => (window.location.href = "/free-tender-upload")}
               />
             </div>
           </aside>
 
-          {/* === RIGHT MAIN LIST (Limited for Home Page) === */}
           <main className="lg:col-span-2 space-y-6">
             {loading && (
               <p className="text-center text-gray-600">
@@ -138,6 +136,17 @@ const TenderListingSection: React.FC = () => {
                     key={t.id}
                     className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all"
                   >
+                    {/* 🟢 NEW: Conditional Type Tag - Added here */}
+                    {t.type === 'Amendment' && (
+                      <span className="inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded mb-2">
+                        Amendment
+                      </span>
+                    )}
+                    {t.type === 'Cancellation' && (
+                      <span className="inline-block bg-red-500 text-white text-xs font-bold px-2 py-1 rounded mb-2">
+                        Cancellation
+                      </span>
+                    )}
                     <h2 className="text-xl font-bold font-heading text-[var(--color-dark)] mb-3 leading-tight">
                       {t.title}
                     </h2>
@@ -218,7 +227,6 @@ const TenderListingSection: React.FC = () => {
                       <Button
                         label="View Notice"
                         className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/80 shadow-md text-sm text-white px-4 py-2 rounded-lg transition-colors"
-                        // --- UPDATED onClick HANDLER ---
                         onClick={() => handleViewNoticeClick(t.id)}
                       />
                     </div>
@@ -229,7 +237,6 @@ const TenderListingSection: React.FC = () => {
           </main>
         </div>
 
-        {/* === "View All Tenders" Button === */}
         <div className="text-center mt-8">
           <Link to="/tenders">
             <Button

@@ -1,3 +1,4 @@
+// src/components/TenderPageList.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -11,6 +12,7 @@ import Button from "../shared/Button";
 import { useTenderStore } from "../../stores/useTenderStore";
 import { useTaxonomyStore } from "../../stores/useTaxonomyStore";
 import { useAuthStore } from "../../stores/authStore";
+import { type Tender } from "../../services/tenderService"; // Make sure to import Tender type
 
 /* ---------- tiny helpers ---------- */
 const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
@@ -58,6 +60,7 @@ const TenderPageList: React.FC = () => {
     setFilters,
     filters,
     page,
+    resetFilters,
     lastPage,
   } = useTenderStore();
   const { byProvince, byCategory, load: loadTax } = useTaxonomyStore();
@@ -72,24 +75,26 @@ const TenderPageList: React.FC = () => {
   /* ✅ on mount & on URL change: check ?search= param */
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const searchTerm = params.get("search");
-
-    const categoryId = params.get("category");
-    if (categoryId) {
-      console.log("📂 Found category ID in URL:", categoryId);
-      setFilters({ "categories[0]": Number(categoryId) });
-      fetchPage(1, true);
-    }
-
-    if (searchTerm) {
-      console.log("🔍 Found search term in URL:", searchTerm);
-      setFilters({ searchParam: searchTerm }); // pass search term to store
-      fetchPage(1, true);
+    
+    if (params.size === 0) {
+      console.log("🕵️‍♀️ No URL search parameters found. Calling a full reset.");
+      resetFilters();
     } else {
-      fetchPage(1, true);
+      const newFilters: Record<string, string | number | undefined> = {};
+      for (const [key, value] of params.entries()) {
+        if (key === "categories[0]") {
+          newFilters[key] = Number(value);
+        } else {
+          newFilters[key] = value;
+        }
+      }
+      setFilters(newFilters);
     }
+    
+    fetchPage(1, true);
     loadTax();
-  }, [location.search, setFilters, fetchPage, loadTax]);
+    
+  }, [location.search, setFilters, resetFilters, fetchPage, loadTax]);
 
   /* helper: set filters & refresh page */
   const setAndRefresh = (partial: Record<string, unknown>) => {
@@ -102,7 +107,6 @@ const TenderPageList: React.FC = () => {
     setFilters(newFilters);
     fetchPage(1, true);
 
-    // ✅ remove ?search= when user clicks filters
     const url = new URL(window.location.href);
     url.searchParams.delete("search");
     window.history.replaceState({}, "", url.toString());
@@ -196,7 +200,8 @@ const TenderPageList: React.FC = () => {
               </h3>
               <Button
                 label="Upload Tenders Now"
-                className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/80"
+                className="w-full bg-[var(--color-primary)]  text-center hover:bg-[var(--color-primary)]/80"
+                onClick={() => (window.location.href = "/free-tender-upload")}
               />
             </div>
 
@@ -278,69 +283,69 @@ const TenderPageList: React.FC = () => {
                 </div>
               )}
 
-<ul className="divide-y divide-gray-100">
-    {byProvince
-      .slice() // Create a shallow copy to avoid mutating the original array
-      .sort((a, b) => {
-        // Put null province at the end
-        if (a.province === null) return 1;
-        if (b.province === null) return -1;
-        // Sort the rest alphabetically
-        return a.province.localeCompare(b.province);
-      })
-      .map((p) => (
-        <li key={p.province || "null-province"}>
-          <div
-            className={`flex justify-between p-3 cursor-pointer ${
-              activeProv === shortenProvinceName(p.province) && !activeDistrict
-                ? "bg-gray-100 font-semibold text-[var(--color-primary)]"
-                : "hover:bg-gray-50"
-            }`}
-            onClick={() => {
-              applyProvince(p.province);
-              if (p.districts.length > 0) {
-                setOpenProv((s) => ({
-                  ...s,
-                  [p.province]: !s[p.province],
-                }));
-              }
-            }}
-          >
-            <span>
-              {p.province?.trim() || "Unassigned"} ({p.total})
-            </span>
-            {p.districts.length > 0 &&
-              (openProv[p.province] ? (
-                <FaChevronDown className="text-gray-500" />
-              ) : (
-                <FaChevronRight className="text-gray-500" />
-              ))}
-          </div>
+              <ul className="divide-y divide-gray-100">
+                {byProvince
+                  .slice() // Create a shallow copy to avoid mutating the original array
+                  .sort((a, b) => {
+                    // Put null province at the end
+                    if (a.province === null) return 1;
+                    if (b.province === null) return -1;
+                    // Sort the rest alphabetically
+                    return a.province.localeCompare(b.province);
+                  })
+                  .map((p) => (
+                    <li key={p.province || "null-province"}>
+                      <div
+                        className={`flex justify-between p-3 cursor-pointer ${
+                          activeProv === shortenProvinceName(p.province) && !activeDistrict
+                            ? "bg-gray-100 font-semibold text-[var(--color-primary)]"
+                            : "hover:bg-gray-50"
+                        }`}
+                        onClick={() => {
+                          applyProvince(p.province);
+                          if (p.districts.length > 0) {
+                            setOpenProv((s) => ({
+                              ...s,
+                              [p.province]: !s[p.province],
+                            }));
+                          }
+                        }}
+                      >
+                        <span>
+                          {p.province?.trim() || "Unassigned"} ({p.total})
+                        </span>
+                        {p.districts.length > 0 &&
+                          (openProv[p.province] ? (
+                            <FaChevronDown className="text-gray-500" />
+                          ) : (
+                            <FaChevronRight className="text-gray-500" />
+                          ))}
+                      </div>
 
-          {openProv[p.province] && p.districts.length > 0 && (
-            <ul className="bg-gray-50 border-t border-gray-100">
-              {p.districts.map((d) => (
-                <li
-                  key={d.district}
-                  className={`flex justify-between pl-8 p-2 cursor-pointer text-sm ${
-                    activeProv === shortenProvinceName(p.province) &&
-                    activeDistrict === d.district?.trim()
-                      ? "bg-gray-100 font-semibold text-[var(--color-primary)]"
-                      : "hover:bg-gray-100"
-                  }`}
-                  onClick={() => applyDistrict(p.province, d.district)}
-                >
-                  <span>
-                    {d.district?.trim()} ({d.total})
-                  </span>
-                  <FaChevronRight className="text-gray-400 text-xs" />
-                </li>
-              ))}
-            </ul>
-          )}
-        </li>
-      ))}
-  </ul>
+                      {openProv[p.province] && p.districts.length > 0 && (
+                        <ul className="bg-gray-50 border-t border-gray-100">
+                          {p.districts.map((d) => (
+                            <li
+                              key={d.district}
+                              className={`flex justify-between pl-8 p-2 cursor-pointer text-sm ${
+                                activeProv === shortenProvinceName(p.province) &&
+                                activeDistrict === d.district?.trim()
+                                  ? "bg-gray-100 font-semibold text-[var(--color-primary)]"
+                                  : "hover:bg-gray-100"
+                              }`}
+                              onClick={() => applyDistrict(p.province, d.district)}
+                            >
+                              <span>
+                                {d.district?.trim()} ({d.total})
+                              </span>
+                              <FaChevronRight className="text-gray-400 text-xs" />
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  ))}
+              </ul>
             </div>
           </aside>
 
@@ -364,11 +369,22 @@ const TenderPageList: React.FC = () => {
 
             {/* tender list */}
             {!loading &&
-              list.map((t, index) => (
+              list.map((t: Tender, index) => (
                 <article
                   key={t.id ?? `tender-${index}`}
                   className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all"
                 >
+                  {/* 🟢 NEW: Conditional Type Tag - Added to the top of the card */}
+                  {t.type === 'Amendment' && (
+                    <span className="inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded mb-2">
+                      Amendment
+                    </span>
+                  )}
+                  {t.type === 'Cancellation' && (
+                    <span className="inline-block bg-red-500 text-white text-xs font-bold px-2 py-1 rounded mb-2">
+                      Cancellation
+                    </span>
+                  )}
                   <h2
                     className="text-xl font-bold mb-3 cursor-pointer hover:underline text-[var(--color-dark)]"
                     onClick={() => {
@@ -467,7 +483,7 @@ const TenderPageList: React.FC = () => {
                 <Button
                   label="Prev"
                   disabled={page === 1 || loading}
-                  className="px-3 py-1  text-gray-700 hover:bg-gray-800"
+                  className="px-3 py-1  text-gray-700 hover:bg-gray-800"
                   onClick={() => {
                     fetchPage(page - 1, true);
                     scrollTop();
@@ -494,7 +510,7 @@ const TenderPageList: React.FC = () => {
                 <Button
                   label="Next"
                   disabled={page === lastPage || loading}
-                  className="px-3 py-1   text-gray-700 hover:bg-gray-300"
+                  className="px-3 py-1   text-gray-700 hover:bg-gray-300"
                   onClick={() => {
                     fetchPage(page + 1, true);
                     scrollTop();
