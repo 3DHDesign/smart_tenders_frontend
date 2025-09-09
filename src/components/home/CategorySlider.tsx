@@ -66,7 +66,7 @@ export default function CategorySlider() {
           <SwiperSlide key={cat.id} className="!m-0 !p-0">
             <div
               className="flex flex-col items-center justify-center text-center h-full w-full cursor-pointer"
-              onClick={() => navigate(`/tenders?category=${cat.id}`)} // ✅ navigate on click
+              onClick={() => navigate(`/tenders?categories[0]=${cat.id}`)} // ✅ navigate on click
             >
               <div className="bg-white/10 hover:bg-white/20 transition rounded-md p-1 backdrop-blur-sm shadow-sm flex items-center justify-center w-[60px] h-[60px] sm:w-[70px] sm:h-[70px] md:w-[80px] md:h-[80px] lg:w-[90px] lg:h-[90px]">
                 {cat.icon_url ? (

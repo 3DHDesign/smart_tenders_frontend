@@ -51,7 +51,7 @@ const BrowseCategories: React.FC = () => {
               key={cat.id}
               className="flex items-center p-4 bg-white rounded-lg shadow-md border border-gray-100
                          hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-in-out cursor-pointer"
-              onClick={() => navigate(`/tenders?category=${cat.id}`)} // ✅ Navigate on click
+              onClick={() => navigate(`/tenders?categories[0]=${cat.id}`)} // ✅ Navigate on click
             >
               <div
                 className="flex-shrink-0 flex items-center justify-center

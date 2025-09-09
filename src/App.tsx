@@ -53,6 +53,7 @@ function App() {
         <Route path="/tenders" element={<Tenders />} />
         <Route path="/tenders/:id" element={<TenderDetail />} />
         <Route path="/contact-us" element={<ContactUs />} />
+        
         <Route path="/free-tender-upload" element={<FreeTenderUpload />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-conditions" element={<TermsConditions />} />

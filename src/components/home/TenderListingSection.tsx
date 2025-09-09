@@ -2,14 +2,14 @@
 import React, { useEffect, useMemo } from "react";
 import { useTenderStore } from "../../stores/useTenderStore";
 import Button from "../shared/Button";
-import { Link, useNavigate } from "react-router-dom";
+import { Link,   } from "react-router-dom";
 import { type Tender } from "../../services/tenderService";
 import { useAuthStore } from "../../stores/authStore";
 
 const TenderListingSection: React.FC = () => {
   // 🟢 Make sure to destructure resetFilters from the store
   const { list, loading, fetchPage, counts, resetFilters } = useTenderStore();
-  const navigate = useNavigate();
+ 
   const { isLoggedIn, user } = useAuthStore();
   const canViewSensitiveFields = isLoggedIn && (user?.status === "active" || user?.status === "pending");
 
@@ -59,7 +59,7 @@ const TenderListingSection: React.FC = () => {
 
   // --- Handle navigation to Tender Detail page ---
   const handleViewNoticeClick = (tenderId: number) => {
-    navigate(`/tenders/${tenderId}`);
+    window.open(`/tenders/${tenderId}`, '_blank');
   };
 
   return (

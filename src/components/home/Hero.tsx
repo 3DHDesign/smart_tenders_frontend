@@ -1,5 +1,5 @@
 // src/components/Hero.tsx
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react"; // 🟢 ADDED: useRef
 import { FaSearch } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +20,7 @@ export default function Hero() {
   const [searchResults, setSearchResults] = useState<TenderSearchResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
+  const searchContainerRef = useRef<HTMLDivElement>(null); // 🟢 ADDED: Ref for the search container
 
   useEffect(() => {
     const fetchSlides = async () => {
@@ -51,6 +52,8 @@ export default function Hero() {
   const activeSlide = slides[activeIndex];
 
   const headlineHtml = useMemo(() => {
+    // ⚠️ IMPORTANT: Please ensure your API titles don't contain raw HTML.
+    // If they do, consider sanitizing them to prevent XSS attacks.
     return activeSlide?.title || "";
   }, [activeSlide?.title]);
 
@@ -76,16 +79,38 @@ export default function Hero() {
 
     return () => clearTimeout(timeout);
   }, [query]);
-  
+
   useEffect(() => {
-    const handleClickOutside = () => {
-        if (showDropdown) {
-            setShowDropdown(false);
-        }
+    const handleClickOutside = (event: MouseEvent) => {
+      // 🟢 FIXED: Check if the click is outside the search container
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showDropdown]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [searchContainerRef]);
+
+  // 🟢 NEW: Unified function to handle search and navigation
+  const handleSearch = () => {
+    if (query.trim()) {
+      navigate(`/tenders?searchParam=${encodeURIComponent(query)}`);
+      setShowDropdown(false);
+    }
+  };
+
+  const handleSearchOnKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // 🟢 NEW: Function to handle a click on a dropdown item
+  const handleSuggestionClick = (tenderId: number) => {
+    navigate(`/tenders/${tenderId}`);
+    setShowDropdown(false);
+    setQuery("");
+  };
 
   return (
     <section className="wide-container relative min-h-[90vh] text-white flex items-center overflow-hidden px-4 sm:px-0">
@@ -145,24 +170,20 @@ export default function Hero() {
             ></motion.p>
 
             {/* 🔍 Search Bar */}
-            <div className="relative w-full max-w-2xl">
+            <div className="relative w-full max-w-2xl" ref={searchContainerRef}> {/* 🟢 ADDED: ref */}
               <div className="bg-white/10 backdrop-blur-md rounded-full px-3 py-1.5 sm:py-2.5 flex items-center">
                 <input
                   type="text"
                   placeholder="Search tenders..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={handleSearchOnKeyDown}
                   className="flex-grow bg-transparent text-white placeholder-white/70 outline-none text-sm px-2 font-body"
                   onFocus={() => setShowDropdown(true)}
                 />
                 <div
                   className="text-white ml-2 cursor-pointer"
-                  onClick={() => {
-                    if (query.trim()) {
-                      navigate(`/tenders?search=${encodeURIComponent(query)}`);
-                      setShowDropdown(false);
-                    }
-                  }}
+                  onClick={handleSearch}  
                 >
                   <FaSearch size={20} />
                 </div>
@@ -175,11 +196,7 @@ export default function Hero() {
                     <div
                       key={item.id}
                       className="p-3 border-b last:border-none hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        navigate(`/tenders/${item.id}`);
-                        setShowDropdown(false);
-                        setQuery("");
-                      }}
+                      onClick={() => handleSuggestionClick(item.id)}  
                     >
                       <p className="font-semibold">{item.title}</p>
                       <p className="text-xs text-gray-600">

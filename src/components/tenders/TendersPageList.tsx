@@ -465,14 +465,14 @@ const TenderPageList: React.FC = () => {
                       days
                     </span>
                     <Button
-                      label="View Notice"
-                      className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/80 text-sm"
-                      onClick={() => {
-                        if (t.id) {
-                          navigate(`/tenders/${t.id}`);
-                        }
-                      }}
-                    />
+  label="View Notice"
+  className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/80 text-sm"
+  onClick={() => {
+    if (t.id) {
+      window.open(`/tenders/${t.id}`, '_blank');
+    }
+  }}
+/>
                   </div>
                 </article>
               ))}
